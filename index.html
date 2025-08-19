@@ -1,0 +1,1408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monster TCG</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f0f0f0;
+            color: #333;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 900px;
+            margin: auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        h1, h2 {
+            text-align: center;
+            color: #444;
+        }
+        .section {
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: #fafafa;
+            border-radius: 6px;
+            border: 1px solid #eee;
+        }
+        .resource-display {
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            text-align: center;
+            font-size: 1.2em;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+        .resource-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 0 10px;
+        }
+        .resource-value {
+            font-size: 1.5em;
+        }
+        .resource-per-second {
+            font-size: 0.8em;
+            color: #777;
+        }
+        .button-group {
+            text-align: center;
+            margin-top: 15px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+        }
+        .btn {
+            padding: 10px 20px;
+            font-size: 1em;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            color: #fff;
+            background-color: #007bff;
+            transition: background-color 0.3s;
+        }
+        .btn:hover {
+            background-color: #0056b3;
+        }
+        .btn:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+        #card-display {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+        }
+        #deck-display {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            border: 2px dashed #999;
+            padding: 10px;
+            border-radius: 8px;
+            min-height: 180px;
+            align-items: center;
+        }
+        .card {
+            background-color: #fff;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 10px;
+            width: 150px;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            position: relative;
+        }
+        @keyframes card-pulse {
+            0% {
+                transform: scale(1);
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            }
+            50% {
+                transform: scale(1.01);
+                box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+            }
+            100% {
+                transform: scale(1);
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            }
+        }
+        .card:hover {
+            animation: card-pulse 1s infinite ease-in-out;
+            z-index: 100; /* Add this line */
+        }
+        .card.selected {
+            border: 2px solid #007bff;
+        }
+        .card.in-deck {
+            border: 2px solid #28a745;
+        }
+        .card.Common { background-color: #b3e0ff; }
+        .card.Uncommon { background-color: #c2f0c2; }
+        .card.Rare { background-color: #ffccff; }
+        .card.Epic { background-color: #ffb3b3; }
+        .card.Legendary { background-color: #fffacd; }
+
+        /* Drag and Drop Styles */
+        .card {
+            cursor: grab;
+        }
+        .card:active {
+            cursor: grabbing;
+        }
+        .card.dragging {
+            opacity: 0.5;
+        }
+
+        #battle-log {
+            height: 150px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            padding: 10px;
+            background-color: #f9f9f9;
+            border-radius: 6px;
+        }
+        .card-popup {
+            position: fixed;
+            right: -350px;
+            top: 0;
+            width: 300px;
+            height: 100%;
+            background-color: #f4f4f4;
+            border-left: 1px solid #ccc;
+            box-shadow: -5px 0 10px rgba(0, 0, 0, 0.1);
+            transition: right 0.3s ease-in-out;
+            z-index: 1000;
+            overflow-y: auto;
+        }
+        .card-popup.open {
+            right: 0;
+        }
+        .popup-content {
+            padding: 20px;
+        }
+        .close-btn {
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .popup-content p {
+            margin: 5px 0;
+        }
+        .popup-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        #sort-controls {
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        .deck-controls {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .upgrades-section {
+            text-align: center;
+        }
+        .upgrades-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 10px;
+            align-items: center;
+        }
+        #bonus-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            padding: 10px;
+        }
+
+        .bonus-stat-item {
+            background-color: #e9ecef;
+            padding: 10px;
+            border-radius: 6px;
+            border: 1px solid #dee2e6;
+        }
+
+        .bonus-stat-item h4 {
+            margin: 0 0 5px 0;
+            font-size: 1.1em;
+        }
+
+        .bonus-stat-item p {
+            margin: 0;
+            color: #555;
+        }
+        
+        /* BATTLE OVERLAY STYLES */
+        .battle-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
+        }
+        .battle-overlay.open {
+            opacity: 1;
+            visibility: visible;
+        }
+        .overlay-content {
+            background-color: #f4f4f4;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+            width: 80%;
+            max-width: 900px;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+        }
+        .close-overlay-btn {
+            position: absolute;
+            top: 10px;
+            right: 20px;
+            font-size: 30px;
+            font-weight: bold;
+            cursor: pointer;
+            color: #555;
+        }
+        .battlefield {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .player-side, .enemy-side {
+            width: 100%;
+            text-align: center;
+        }
+        .battle-card-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+        }
+        .battle-log-overlay {
+            height: 150px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            padding: 10px;
+            background-color: #e9ecef;
+            border-radius: 6px;
+            margin-top: 20px;
+        }
+        .battle-log-overlay p {
+            margin: 5px 0;
+            font-size: 0.9em;
+        }
+        .battle-card {
+            width: 120px;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            text-align: center;
+            background-color: #fff;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        .battle-card h5 {
+            margin: 5px 0;
+        }
+        .battle-results {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        /* Card Pull Notification Styles */
+        .pull-notification-container {
+            position: fixed;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 3000;
+            width: 100%;
+            max-width: 600px;
+            pointer-events: none; /* Make container non-interactive */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .pull-notification-bubble {
+            color: white;
+            padding: 10px 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            opacity: 0;
+            transform: translateY(-50px);
+            transition: transform 0.5s ease-in-out, opacity 0.5s ease-in-out;
+            font-size: 1.2em;
+            font-weight: bold;
+            position: relative;
+            animation: fadeIn 0.5s ease-in-out forwards;
+        }
+
+        .pull-notification-bubble.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .pull-notification-bubble.Common { background-color: #007bff; }
+        .pull-notification-bubble.Uncommon { background-color: #28a745; }
+        .pull-notification-bubble.Rare { background-color: #6f42c1; }
+        .pull-notification-bubble.Epic { background-color: #dc3545; }
+        .pull-notification-bubble.Legendary { background-color: #ffc107; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-50px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Hover Popup Styles (New CSS-only solution) */
+        .card .hover-popup {
+            display: none;
+            position: absolute;
+            top: 0;
+            left: 100%;
+            margin-left: 10px;
+            padding: 10px;
+            background-color: rgba(255, 255, 255, 0.95);
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            font-size: 0.9em;
+            width: 200px;
+            z-index: 100;
+        }
+        .card:hover .hover-popup {
+            display: block;
+        }
+        .card .hover-popup h5 {
+            margin: 0 0 5px 0;
+        }
+        .card .hover-popup p {
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="pull-notification-container" class="pull-notification-container">
+    </div>
+    
+    <div class="container">
+        <h1>Idle TCG</h1>
+        <p>Welcome to the Idle TCG! Collect cards, upgrade them, and battle to progress.</p>
+
+        <div class="section resource-display">
+            <div class="resource-item">
+                <div>💰 Gold:</div>
+                <div class="resource-value" id="gold">0</div>
+                <div class="resource-per-second">(+<span id="gold-gain">0</span>/s)</div>
+            </div>
+            <div class="resource-item">
+                <div>✨ Mana:</div>
+                <div class="resource-value" id="mana">0</div>
+                <div class="resource-per-second">(+<span id="mana-gain">0</span>/s)</div>
+            </div>
+            <div class="resource-item">
+                <div>🛡️ Stage:</div>
+                <div class="resource-value" id="stage">1</div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Actions</h2>
+            <div class="button-group">
+                <button id="buyPackBtn" class="btn">Buy Card Pack (100 Gold)</button>
+                <button id="startBattleBtn" class="btn" disabled>Start Battle</button>
+            </div>
+        </div>
+        
+        <div class="section upgrades-section">
+            <h2>Upgrades</h2>
+            <div class="upgrades-container">
+                <button id="upgradePack5xBtn" class="btn" data-cost="5000" disabled>5x Pack Open (5000 Gold)</button>
+                <button id="upgradePack10xBtn" class="btn" data-cost="20000" disabled>10x Pack Open (20000 Gold)</button>
+                <button id="upgradeAutoBattleBtn" class="btn" data-cost="10000" disabled>Auto-Battle (10000 Gold)</button>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Your Deck (<span id="deck-count">0</span>/4)</h2>
+            <div id="deck-display">
+                <p>Drag or add cards here to form your battle deck!</p>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Your Cards</h2>
+            <div id="sort-controls">
+                Sort by:
+                <button class="btn sort-btn" data-sort="level">Level</button>
+                <button class="btn sort-btn" data-sort="rarity">Rarity</button>
+                <button class="btn sort-btn" data-sort="idleGold">Idle Gold</button>
+                <button class="btn sort-btn" data-sort="idleMana">Idle Mana</button>
+                <button class="btn sort-btn" data-sort="allStatsBoost">All Stats</button>
+            </div>
+            <div id="card-display">
+                <p>Buy a card pack to get your first card!</p>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Battle Log</h2>
+            <div id="battle-log"></div>
+        </div>
+
+        <div class="section">
+            <h2>Current Bonuses</h2>
+            <div id="bonus-stats">
+                </div>
+        </div>
+    </div>
+    
+    <div id="card-popup" class="card-popup">
+        <div class="popup-content">
+            <span class="close-btn">&times;</span>
+            <h3 id="popup-card-name"></h3>
+            <p><strong>Rarity:</strong> <span id="popup-card-rarity"></span></p>
+            <p><strong>Level:</strong> <span id="popup-card-level"></span></p>
+            <p><strong>XP:</strong> <span id="popup-card-xp"></span></p>
+            <p><strong>Attack:</strong> <span id="popup-card-attack"></span></p>
+            <p><strong>Defense:</strong> <span id="popup-card-defense"></span></p>
+            <p id="popup-ability-row"><strong>Ability:</strong> <span id="popup-card-ability"></span></p>
+            <div class="popup-buttons">
+                <button id="upgradeCardBtn" class="btn" disabled>Upgrade Selected Card</button>
+            </div>
+        </div>
+    </div>
+    
+    <div id="battle-overlay" class="battle-overlay">
+        <div class="overlay-content">
+            <span id="close-overlay-btn" class="close-overlay-btn">&times;</span>
+            <h3>Battle! Stage <span id="overlay-stage">1</span></h3>
+            <div class="battlefield">
+                <div class="player-side">
+                    <h4>Your Deck</h4>
+                    <div id="player-cards-battle" class="battle-card-container"></div>
+                </div>
+                <div class="enemy-side">
+                    <h4>Enemy Cards</h4>
+                    <div id="enemy-cards-battle" class="battle-card-container"></div>
+                </div>
+            </div>
+            <div id="battle-simulation-log" class="battle-log-overlay"></div>
+            <div class="battle-results">
+                <button id="collectRewardsBtn" class="btn" style="display: none;">Collect Rewards</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Game State
+        const gameState = {
+            gold: 400,
+            mana: 0,
+            stage: 1,
+            cards: [],
+            deck: [],
+            selectedCardId: null,
+            idleGoldInterval: null,
+            manaInterval: null,
+            lastBattleTime: 0,
+            sortType: 'level', // Default sort
+            packMultiplier: 1,
+            autoBattleUnlocked: false,
+            autoBattleInterval: null,
+            battleOverlayOpen: false,
+            lastRewards: null,
+            enemyCards: [],
+            lastUpdate: Date.now()
+        };
+
+        const rarityOrder = {
+            "Common": 1,
+            "Uncommon": 2,
+            "Rare": 3,
+            "Epic": 4,
+            "Legendary": 5
+        };
+        
+        const initialRarityChances = {
+            "Common": 0.50,
+            "Uncommon": 0.30,
+            "Rare": 0.12,
+            "Epic": 0.06,
+            "Legendary": 0.02,
+        };
+        
+        const allAbilities = {
+            "idleGold": { name: "Idle Gold Gain", unit: "/s", isPercentage: false, icon: "💰", type: "idle" },
+            "idleMana": { name: "Idle Mana Gain", unit: "/s", isPercentage: false, icon: "✨", type: "idle" },
+            "rarityLuck": { name: "Rarity Luck", unit: "%", isPercentage: true, icon: "🍀", type: "active" },
+            "extraDraw": { name: "Extra Draw Chance", unit: "%", isPercentage: true, icon: "🃏", type: "active" },
+            "freeDrawChance": { name: "Free Pack Chance", unit: "%", isPercentage: true, icon: "🎁", type: "active" },
+            "battleGold": { name: "Battle Gold Bonus", unit: "%", isPercentage: true, icon: "🪙", type: "active" },
+            "battleMana": { name: "Battle Mana Bonus", unit: "%", isPercentage: true, icon: "💠", type: "active" },
+            "battleXP": { name: "Battle XP Bonus", unit: "%", isPercentage: true, icon: "✨", type: "active" },
+            "battleRewardsBoost": { name: "All Battle Rewards Boost", unit: "%", isPercentage: true, icon: "🏆", type: "active" },
+            "manaCostReduction": { name: "Mana Cost Reduction", unit: "%", isPercentage: true, icon: "📉", type: "idle" },
+            "allStatsBoost": { name: "All Cards Stat Boost", unit: "%", isPercentage: true, icon: "📈", type: "idle" },
+        };
+        
+        const fullCardPool = [
+            // Common Cards
+            { id: "goblinGrunt", name: "Goblin Grunt", rarity: "Common", baseAttack: 5, baseDefense: 10, ability: { type: "idleGold", value: 0.5, description: "Adds {val} to idle gold per second." } },
+            { id: "forestImp", name: "Forest Imp", rarity: "Common", baseAttack: 3, baseDefense: 7, ability: { type: "extraDraw", value: 0.02, description: "{val}% chance to pull an extra card from packs." } },
+            { id: "ogreWarrior", name: "Ogre Warrior", rarity: "Common", baseAttack: 15, baseDefense: 25, ability: { type: "battleGold", value: 0.05, description: "Increases battle gold rewards by {val}%." } },
+            { id: "mudMonster", name: "Mud Monster", rarity: "Common", baseAttack: 8, baseDefense: 18, ability: { type: "battleMana", value: 0.05, description: "Increases battle mana rewards by {val}%." } },
+            { id: "ironGolem", name: "Iron Golem", rarity: "Common", baseAttack: 12, baseDefense: 22, ability: { type: "battleXP", value: 0.05, description: "Increases battle XP gain by {val}%." } },
+            { id: "goblinEngineer", name: "Goblin Engineer", rarity: "Common", baseAttack: 7, baseDefense: 12, ability: { type: "idleGold", value: 0.75, description: "Adds {val} to idle gold per second." } },
+            { id: "earthSprite", name: "Earth Sprite", rarity: "Common", baseAttack: 4, baseDefense: 15, ability: { type: "battleXP", value: 0.2, description: "Increases battle XP gain by {val}%." } },
+            { id: "goldHoarder", name: "Gold Hoarder", rarity: "Common", baseAttack: 6, baseDefense: 8, ability: { type: "idleGold", value: 1.0, description: "Adds {val} to idle gold per second." } },
+            { id: "koboldMiner", name: "Kobold Miner", rarity: "Common", baseAttack: 9, baseDefense: 11, ability: { type: "idleGold", value: 0.6, description: "Adds {val} to idle gold per second." } },
+
+            // Uncommon Cards
+            { id: "stoneGolem", name: "Stone Golem", rarity: "Uncommon", baseAttack: 10, baseDefense: 30, ability: { type: "battleRewardsBoost", value: 0.1, description: "Increases all battle rewards by {val}%." } },
+            { id: "mushroomMage", name: "Mushroom Mage", rarity: "Uncommon", baseAttack: 15, baseDefense: 5, ability: { type: "idleGold", value: 1.0, description: "Adds {val} to idle gold per second." } },
+            { id: "sandWorm", name: "Sand Worm", rarity: "Uncommon", baseAttack: 25, baseDefense: 15, ability: { type: "battleGold", value: 0.1, description: "Increases battle gold rewards by {val}%." } },
+            { id: "fireElemental", name: "Fire Elemental", rarity: "Uncommon", baseAttack: 22, baseDefense: 12, ability: { type: "battleXP", value: 0.15, description: "Increases battle XP gain by {val}%." } },
+            { id: "iceGolem", name: "Ice Golem", rarity: "Uncommon", baseAttack: 18, baseDefense: 20, ability: { type: "battleMana", value: 0.1, description: "Increases battle mana rewards by {val}%." } },
+            { id: "ironCladKnight", name: "Iron Clad Knight", rarity: "Uncommon", baseAttack: 20, baseDefense: 25, ability: { type: "battleXP", value: 0.1, description: "Increases battle XP gain by {val}%." } },
+            { id: "manaSprite", name: "Mana Sprite", rarity: "Uncommon", baseAttack: 5, baseDefense: 5, ability: { type: "idleMana", value: 0.5, description: "Adds {val} to idle mana per second." } },
+            { id: "crystalProtector", name: "Crystal Protector", rarity: "Uncommon", baseAttack: 25, baseDefense: 40, ability: { type: "battleMana", value: 0.15, description: "Increases battle mana rewards by {val}%." } },
+            { id: "fairyQueen", name: "Fairy Queen", rarity: "Uncommon", baseAttack: 18, baseDefense: 18, ability: { type: "battleRewardsBoost", value: 0.1, description: "Increases all battle rewards by {val}%." } },
+            { id: "swampGiant", name: "Swamp Giant", rarity: "Uncommon", baseAttack: 28, baseDefense: 35, ability: { type: "battleRewardsBoost", value: 0.15, description: "Increases all battle rewards by {val}%." } },
+            { id: "coinGiver", name: "Coin Giver", rarity: "Uncommon", baseAttack: 12, baseDefense: 14, ability: { type: "idleGold", value: 2.5, description: "Adds {val} to idle gold per second." } },
+
+            // Rare Cards
+            { id: "holyPaladin", name: "Holy Paladin", rarity: "Rare", baseAttack: 20, baseDefense: 25, ability: { type: "rarityLuck", value: 0.05, description: "Increases chance of pulling rare cards by {val}%." } },
+            { id: "darkSorcerer", name: "Dark Sorcerer", rarity: "Rare", baseAttack: 30, baseDefense: 10, ability: { type: "rarityLuck", value: 0.07, description: "Increases chance of pulling rare cards by {val}%." } },
+            { id: "windSpirit", name: "Wind Spirit", rarity: "Rare", baseAttack: 12, baseDefense: 18, ability: { type: "freeDrawChance", value: 0.03, description: "{val}% chance for a free pack draw." } },
+            { id: "shadowThief", name: "Shadow Thief", rarity: "Rare", baseAttack: 10, baseDefense: 10, ability: { type: "battleGold", value: 0.2, description: "Increases battle gold rewards by {val}%." } },
+            { id: "siren", name: "Siren", rarity: "Rare", baseAttack: 28, baseDefense: 15, ability: { type: "freeDrawChance", value: 0.05, description: "{val}% chance for a free pack draw." } },
+            { id: "mythicalBeast", name: "Mythical Beast", rarity: "Rare", baseAttack: 45, baseDefense: 45, ability: { type: "battleRewardsBoost", value: 0.25, description: "Increases all battle rewards by {val}%." } },
+            { id: "vampireLord", name: "Vampire Lord", rarity: "Rare", baseAttack: 35, baseDefense: 25, ability: { type: "idleMana", value: 1.5, description: "Adds {val} to idle mana per second." } },
+            { id: "celestialGriffin", name: "Celestial Griffin", rarity: "Rare", baseAttack: 38, baseDefense: 32, ability: { type: "rarityLuck", value: 0.1, description: "Increases chance of pulling rare cards by {val}%." } },
+            { id: "plagueDoctor", name: "Plague Doctor", rarity: "Rare", baseAttack: 25, baseDefense: 25, ability: { type: "battleMana", value: 0.2, description: "Increases battle mana rewards by {val}%." } },
+            { id: "arcaneArcher", name: "Arcane Archer", rarity: "Rare", baseAttack: 10, baseDefense: 10, ability: { type: "manaCostReduction", value: 0.05, description: "Reduces upgrade mana cost by {val}%." } },
+            
+
+            // Epic Cards
+            { id: "dragonKnight", name: "Dragon Knight", rarity: "Epic", baseAttack: 40, baseDefense: 40, ability: { type: "battleXP", value: 0.25, description: "Increases battle XP gain by {val}%." } },
+            { id: "gargoyleGuardian", name: "Gargoyle Guardian", rarity: "Epic", baseAttack: 35, baseDefense: 50, ability: { type: "battleRewardsBoost", value: 0.2, description: "Increases all battle rewards by {val}%." } },
+            { id: "ghostlyApparition", name: "Ghostly Apparition", rarity: "Epic", baseAttack: 32, baseDefense: 28, ability: { type: "extraDraw", value: 0.05, description: "{val}% chance to pull an extra card." } },
+            { id: "mysticGolem", name: "Mystic Golem", rarity: "Epic", baseAttack: 35, baseDefense: 35, ability: { type: "idleMana", value: 2.0, description: "Adds {val} to idle mana per second." } },
+            { id: "abyssalDemon", name: "Abyssal Demon", rarity: "Epic", baseAttack: 50, baseDefense: 55, ability: { type: "battleGold", value: 0.3, description: "Increases battle gold rewards by {val}%." } },
+            { id: "spectralDragon", name: "Spectral Dragon", rarity: "Epic", baseAttack: 65, baseDefense: 65, ability: { type: "extraDraw", value: 0.08, description: "{val}% chance to pull an extra card." } },
+            { id: "stormGiant", name: "Storm Giant", rarity: "Epic", baseAttack: 58, baseDefense: 58, ability: { type: "allStatsBoost", value: 0.15, description: "Increases Attack and Defense of all cards by {val}%." } },
+            
+            // Legendary Cards
+            { id: "phoenix", name: "Phoenix", rarity: "Legendary", baseAttack: 50, baseDefense: 50, ability: { type: "freeDrawChance", value: 0.02, description: "{val}% chance for a free pack draw." } },
+            { id: "celestialSage", name: "Celestial Sage", rarity: "Legendary", baseAttack: 60, baseDefense: 30, ability: { type: "idleGold", value: 5.0, description: "Adds {val} to idle gold per second." } },
+            { id: "lichKing", name: "Lich King", rarity: "Legendary", baseAttack: 55, baseDefense: 60, ability: { type: "battleXP", value: 0.5, description: "Increases battle XP gain by {val}%." } },
+            { id: "elementalLord", name: "Elemental Lord", rarity: "Legendary", baseAttack: 70, baseDefense: 70, ability: { type: "allStatsBoost", value: 0.1, description: "Increases Attack and Defense of all cards by {val}%." } },
+            { id: "divineAngel", name: "Divine Angel", rarity: "Legendary", baseAttack: 80, baseDefense: 80, ability: { type: "manaCostReduction", value: 0.2, description: "Reduces upgrade mana cost by {val}%." } },
+            { id: "goldenGuardian", name: "Golden Guardian", rarity: "Legendary", baseAttack: 90, baseDefense: 90, ability: { type: "freeDrawChance", value: 0.1, description: "{val}% chance for a free pack draw." } },
+        ];
+
+        // Enemy Card Pool (simplified for this example)
+        function createEnemyCard(stage) {
+            const basePower = stage * 8 + Math.floor(Math.random() * stage * 2);
+            const attack = Math.floor(basePower * (0.5 + Math.random()));
+            const defense = basePower - attack;
+            const enemyNames = ["Crazed Goblin", "Weak Golem", "Skeletal Warrior", "Swamp Ooze", "Direwolf"];
+            const enemyName = enemyNames[Math.floor(Math.random() * enemyNames.length)];
+            return {
+                id: `enemy-${Date.now()}-${Math.random()}`,
+                name: enemyName,
+                attack: attack,
+                defense: defense,
+                health: attack + defense, // Health is sum of stats for simplicity
+                rarity: "Common" // Enemies have no rarity
+            };
+        }
+
+        // UI Elements
+        const goldEl = document.getElementById('gold');
+        const manaEl = document.getElementById('mana');
+        const stageEl = document.getElementById('stage');
+        const goldGainEl = document.getElementById('gold-gain');
+        const manaGainEl = document.getElementById('mana-gain');
+        const deckCountEl = document.getElementById('deck-count');
+        const cardDisplay = document.getElementById('card-display');
+        const deckDisplay = document.getElementById('deck-display');
+        const battleLog = document.getElementById('battle-log');
+        const buyPackBtn = document.getElementById('buyPackBtn');
+        const startBattleBtn = document.getElementById('startBattleBtn');
+        const pullNotificationContainer = document.getElementById('pull-notification-container');
+
+        const upgradePack5xBtn = document.getElementById('upgradePack5xBtn');
+        const upgradePack10xBtn = document.getElementById('upgradePack10xBtn');
+        const upgradeAutoBattleBtn = document.getElementById('upgradeAutoBattleBtn');
+
+        // Popup UI Elements
+        const popup = document.getElementById('card-popup');
+        const closeBtn = document.querySelector('.close-btn');
+        const upgradeCardBtn = document.getElementById('upgradeCardBtn');
+
+        // Battle Overlay UI Elements
+        const battleOverlay = document.getElementById('battle-overlay');
+        const closeOverlayBtn = document.getElementById('close-overlay-btn');
+        const overlayStageEl = document.getElementById('overlay-stage');
+        const playerBattleCardsEl = document.getElementById('player-cards-battle');
+        const enemyBattleCardsEl = document.getElementById('enemy-cards-battle');
+        const battleSimulationLogEl = document.getElementById('battle-simulation-log');
+        const collectRewardsBtn = document.getElementById('collectRewardsBtn');
+
+        const DECK_SIZE = 4;
+
+        // Functions
+        function log(message) {
+            const entry = document.createElement('p');
+            entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            battleLog.prepend(entry);
+        }
+
+        function showPullNotification(message, rarity) {
+            const notificationBubble = document.createElement('div');
+            notificationBubble.className = `pull-notification-bubble ${rarity}`;
+            notificationBubble.textContent = message;
+
+            pullNotificationContainer.prepend(notificationBubble);
+
+            setTimeout(() => {
+                notificationBubble.style.opacity = '1';
+                notificationBubble.style.transform = 'translateY(0)';
+            }, 10); // A slight delay to ensure the animation starts correctly
+
+            setTimeout(() => {
+                notificationBubble.style.opacity = '0';
+                notificationBubble.style.transform = 'translateY(-50px)';
+                setTimeout(() => {
+                    notificationBubble.remove();
+                }, 500); // Wait for the transition to finish before removing
+            }, 2000); // Notification visible for 2 seconds
+        }
+
+        function battleLogOverlay(message) {
+            const entry = document.createElement('p');
+            entry.textContent = message;
+            battleSimulationLogEl.prepend(entry);
+        }
+
+        function addGold(amount) {
+            gameState.gold += amount;
+            updateUI();
+        }
+
+        function addMana(amount) {
+            gameState.mana += amount;
+            updateUI();
+        }
+
+        function updateUI() {
+            goldEl.textContent = gameState.gold.toFixed(1);
+            manaEl.textContent = gameState.mana.toFixed(1);
+            stageEl.textContent = gameState.stage;
+            goldGainEl.textContent = (5 + getAbilityValue("idleGold")).toFixed(1);
+            manaGainEl.textContent = (gameState.stage < 5 ? 0 : 5 + getAbilityValue("idleMana")).toFixed(1);
+            deckCountEl.textContent = gameState.deck.length;
+
+            updateButtonStates();
+            if (!gameState.battleOverlayOpen) {
+                displayCards();
+                displayDeckCards();
+                displayBonusStats();
+            }
+        }
+
+        function updateButtonStates() {
+            buyPackBtn.disabled = gameState.gold < 100;
+            
+            const battleCooldown = 5000;
+            if (gameState.autoBattleUnlocked) {
+                 startBattleBtn.textContent = "Auto-Battle: ON";
+                 startBattleBtn.disabled = false;
+            } else {
+                 startBattleBtn.textContent = "Start Battle";
+                 startBattleBtn.disabled = gameState.deck.length < DECK_SIZE || Date.now() - gameState.lastBattleTime < battleCooldown;
+            }
+
+            // Upgrades
+            const pack5xCost = parseInt(upgradePack5xBtn.dataset.cost);
+            upgradePack5xBtn.disabled = gameState.packMultiplier >= 5 || gameState.gold < pack5xCost;
+            if (gameState.packMultiplier >= 5) upgradePack5xBtn.textContent = "5x Pack Open (Purchased)";
+
+            const pack10xCost = parseInt(upgradePack10xBtn.dataset.cost);
+            upgradePack10xBtn.disabled = gameState.packMultiplier >= 10 || gameState.gold < pack10xCost || gameState.packMultiplier < 5;
+            if (gameState.packMultiplier >= 10) upgradePack10xBtn.textContent = "10x Pack Open (Purchased)";
+
+            const autoBattleCost = parseInt(upgradeAutoBattleBtn.dataset.cost);
+            upgradeAutoBattleBtn.disabled = gameState.autoBattleUnlocked || gameState.gold < autoBattleCost;
+            if (gameState.autoBattleUnlocked) upgradeAutoBattleBtn.textContent = "Auto-Battle (Purchased)";
+        }
+        
+        function getUpgradeCost(level) {
+            let baseCost = 50;
+            const allCards = gameState.cards;
+            let manaCostReduction = 0;
+            allCards.forEach(card => {
+                if (card.ability && card.ability.type === "manaCostReduction") {
+                    manaCostReduction += card.ability.value * card.level;
+                }
+            });
+            return (baseCost + (level - 1) * 25) * (1 - manaCostReduction);
+        }
+        
+        function getAbilityValue(abilityType) {
+            let totalValue = 0;
+            let cardsToCheck = gameState.cards;
+            if (allAbilities[abilityType] && allAbilities[abilityType].type === "active") {
+                 cardsToCheck = gameState.deck.map(id => findCardById(id));
+            } else {
+                 cardsToCheck = gameState.cards;
+            }
+            
+            cardsToCheck.forEach(card => {
+                if (card && card.ability && card.ability.type === abilityType) {
+                    totalValue += card.ability.value * card.level;
+                }
+            });
+            return totalValue;
+        }
+
+        function getCardPool() {
+            let pool = [];
+            let rarities = ["Common", "Uncommon"];
+            if (gameState.stage >= 10) rarities.push("Rare");
+            if (gameState.stage >= 20) rarities.push("Epic");
+            if (gameState.stage >= 30) rarities.push("Legendary");
+            
+            pool = fullCardPool.filter(card => rarities.includes(card.rarity));
+            return pool;
+        }
+
+        function getRandomCard() {
+            const cardPool = getCardPool();
+            const rarityLuck = getAbilityValue("rarityLuck");
+            const rarityChances = {
+                "Common": initialRarityChances.Common - rarityLuck,
+                "Uncommon": initialRarityChances.Uncommon - rarityLuck,
+                "Rare": initialRarityChances.Rare + rarityLuck,
+                "Epic": initialRarityChances.Epic + rarityLuck,
+                "Legendary": initialRarityChances.Legendary + rarityLuck,
+            };
+
+            const rarityRoll = Math.random();
+            let chosenRarity = null;
+            let cumulativeChance = 0;
+
+            for (const rarity in rarityChances) {
+                if (cardPool.some(card => card.rarity === rarity)) {
+                    cumulativeChance += rarityChances[rarity];
+                    if (rarityRoll < cumulativeChance) {
+                        chosenRarity = rarity;
+                        break;
+                    }
+                }
+            }
+
+            const cardsOfRarity = cardPool.filter(card => card.rarity === chosenRarity);
+            const randomCard = cardsOfRarity[Math.floor(Math.random() * cardsOfRarity.length)];
+            return randomCard;
+        }
+
+        function createNewCard(template) {
+            return {
+                id: `${template.id}-${Date.now()}`,
+                name: template.name,
+                rarity: template.rarity,
+                baseAttack: template.baseAttack,
+                baseDefense: template.baseDefense,
+                attack: template.baseAttack,
+                defense: template.baseDefense,
+                xp: 0,
+                level: 1,
+                nextLevelXP: 10,
+                ability: template.ability ? JSON.parse(JSON.stringify(template.ability)) : null
+            };
+        }
+
+        function findCardById(id) {
+            return gameState.cards.find(card => card.id === id);
+        }
+
+        function addXP(card, xpToAdd) {
+            card.xp += xpToAdd;
+            log(`${card.name} gained ${xpToAdd} XP!`);
+            while (card.xp >= card.nextLevelXP) {
+                levelUpCard(card);
+            }
+        }
+
+        function levelUpCard(card) {
+            const previousNextLevelXP = card.nextLevelXP;
+            card.level++;
+            const allStatsBoost = getAbilityValue("allStatsBoost");
+            card.attack = Math.round(card.baseAttack * (1 + (card.level - 1) * 0.1 + allStatsBoost));
+            card.defense = Math.round(card.baseDefense * (1 + (card.level - 1) * 0.1 + allStatsBoost));
+            card.xp -= previousNextLevelXP;
+            card.nextLevelXP = card.level * 10;
+            if (card.ability) {
+                card.ability.value *= 1.1;
+            }
+            log(`${card.name} leveled up to level ${card.level}.`);
+        }
+
+        function displayCards() {
+            cardDisplay.innerHTML = '';
+            const cardsNotInDeck = gameState.cards.filter(c => !gameState.deck.includes(c.id));
+            if (cardsNotInDeck.length === 0) {
+                cardDisplay.innerHTML = '<p>Your cards are either in your deck or you haven\'t bought any yet.</p>';
+                return;
+            }
+
+            const sortedCards = [...cardsNotInDeck];
+            if (gameState.sortType === 'level') {
+                sortedCards.sort((a, b) => b.level - a.level || b.xp - a.xp);
+            } else if (gameState.sortType === 'rarity') {
+                sortedCards.sort((a, b) => rarityOrder[b.rarity] - rarityOrder[a.rarity]);
+            } else if (allAbilities[gameState.sortType]) {
+                const abilityType = gameState.sortType;
+                sortedCards.sort((a, b) => {
+                    const valA = (a.ability && a.ability.type === abilityType) ? a.ability.value * a.level : 0;
+                    const valB = (b.ability && b.ability.type === abilityType) ? b.ability.value * b.level : 0;
+                    if (valB !== valA) {
+                        return valB - valA;
+                    }
+                    return b.level - a.level;
+                });
+            }
+            
+            sortedCards.forEach(card => {
+                const cardDiv = createCardElement(card);
+                cardDiv.classList.add('not-in-deck');
+                cardDisplay.appendChild(cardDiv);
+            });
+        }
+        
+        function displayDeckCards() {
+            deckDisplay.innerHTML = '';
+            const deckCards = gameState.deck.map(id => findCardById(id));
+            if (deckCards.length === 0) {
+                 deckDisplay.innerHTML = '<p>Drag or add cards here to form your battle deck!</p>';
+            }
+
+            deckCards.forEach(card => {
+                const cardDiv = createCardElement(card);
+                cardDiv.classList.add('in-deck');
+                deckDisplay.appendChild(cardDiv);
+            });
+        }
+
+        function createCardElement(card) {
+            const cardDiv = document.createElement('div');
+            cardDiv.className = `card ${card.rarity}`;
+            cardDiv.setAttribute('data-card-id', card.id);
+            cardDiv.setAttribute('draggable', true);
+            
+            cardDiv.addEventListener('click', () => {
+                gameState.selectedCardId = card.id;
+                showCardDetails(card);
+            });
+            cardDiv.addEventListener('dragstart', (e) => {
+                e.dataTransfer.setData('text/plain', card.id);
+                cardDiv.classList.add('dragging');
+            });
+            cardDiv.addEventListener('dragend', () => {
+                cardDiv.classList.remove('dragging');
+            });
+            
+            let abilityIcon = '';
+            let hoverPopupHtml = '';
+            if (card.ability && allAbilities[card.ability.type]) {
+                const abilityInfo = allAbilities[card.ability.type];
+                abilityIcon = abilityInfo.icon;
+                const formattedVal = (card.ability.value * (abilityInfo.isPercentage ? 100 : 1)).toFixed(2);
+                const abilityText = card.ability.description.replace('{val}', formattedVal);
+                hoverPopupHtml = `
+                    <div class="hover-popup">
+                        <h5>${abilityInfo.icon} ${abilityInfo.name}</h5>
+                        <p>${abilityText}</p>
+                    </div>
+                `;
+            }
+
+            if (gameState.selectedCardId === card.id) {
+                cardDiv.classList.add('selected');
+            }
+            
+            cardDiv.innerHTML = `
+                <h4>${card.name}</h4>
+                <p>${abilityIcon} Lvl: ${card.level}</p>
+                <p>⚔️ ${card.attack} | 🛡️ ${card.defense}</p>
+                ${hoverPopupHtml}
+            `;
+            return cardDiv;
+        }
+
+        function showCardDetails(card) {
+            const selected = card || findCardById(gameState.selectedCardId);
+            if (!selected) return;
+            
+            document.getElementById('popup-card-name').textContent = selected.name;
+            document.getElementById('popup-card-rarity').textContent = selected.rarity;
+            document.getElementById('popup-card-level').textContent = selected.level;
+            document.getElementById('popup-card-xp').textContent = `${selected.xp}/${selected.nextLevelXP}`;
+            document.getElementById('popup-card-attack').textContent = selected.attack;
+            document.getElementById('popup-card-defense').textContent = selected.defense;
+            
+            const abilityLabel = document.getElementById('popup-ability-row').querySelector('strong');
+            const abilityText = document.getElementById('popup-card-ability');
+
+            if (selected.ability) {
+                const abilityInfo = allAbilities[selected.ability.type];
+                const formattedVal = (selected.ability.value * (abilityInfo.isPercentage ? 100 : 1)).toFixed(2);
+                abilityText.textContent = selected.ability.description.replace('{val}', formattedVal);
+                abilityLabel.textContent = `${abilityInfo.type === 'idle' ? 'Idle Ability' : 'Active Ability'}:`;
+            } else {
+                abilityText.textContent = 'None';
+                abilityLabel.textContent = 'Ability:';
+            }
+
+            const upgradeCost = getUpgradeCost(selected.level);
+            upgradeCardBtn.textContent = `Upgrade Selected Card (${upgradeCost.toFixed(0)} Mana)`;
+            upgradeCardBtn.disabled = gameState.mana < upgradeCost;
+            
+            popup.classList.add('open');
+            updateUI();
+        }
+
+        function displayBonusStats() {
+            const bonusStatsEl = document.getElementById('bonus-stats');
+            bonusStatsEl.innerHTML = '';
+
+            for (const type in allAbilities) {
+                const abilityInfo = allAbilities[type];
+                let value = getAbilityValue(type);
+                if (value === 0) continue;
+
+                let displayValue = value;
+                
+                if (abilityInfo.isPercentage) {
+                    displayValue = (value * 100).toFixed(1);
+                } else {
+                    displayValue = value.toFixed(1);
+                }
+
+                const statDiv = document.createElement('div');
+                statDiv.className = 'bonus-stat-item';
+                statDiv.innerHTML = `
+                    <h4>${abilityInfo.icon} ${abilityInfo.name}</h4>
+                    <p>+${displayValue}${abilityInfo.unit}</p>
+                `;
+                bonusStatsEl.appendChild(statDiv);
+            }
+        }
+        
+        // BATTLE SIMULATION CODE
+        function openBattleOverlay() {
+            gameState.battleOverlayOpen = true;
+            battleOverlay.classList.add('open');
+            overlayStageEl.textContent = gameState.stage;
+            battleSimulationLogEl.innerHTML = '';
+            collectRewardsBtn.style.display = 'none';
+        }
+
+        function closeBattleOverlay() {
+            gameState.battleOverlayOpen = false;
+            battleOverlay.classList.remove('open');
+            updateUI();
+        }
+
+        function displayBattleCards(cards, containerEl) {
+            containerEl.innerHTML = '';
+            cards.forEach(card => {
+                const cardDiv = document.createElement('div');
+                cardDiv.className = `battle-card ${card.rarity}`;
+                cardDiv.innerHTML = `
+                    <h5>${card.name}</h5>
+                    <p>⚔️ ${card.attack} | 🛡️ ${card.defense}</p>
+                    <p>❤️ ${card.health}</p>
+                `;
+                containerEl.appendChild(cardDiv);
+            });
+        }
+        
+        function runBattleSimulation() {
+            battleSimulationLogEl.innerHTML = '';
+            openBattleOverlay();
+
+            const playerDeck = gameState.deck.map(id => {
+                const card = findCardById(id);
+                return { ...card, health: card.attack + card.defense };
+            });
+            const enemyCards = [];
+            for (let i = 0; i < DECK_SIZE; i++) {
+                const enemy = createEnemyCard(gameState.stage);
+                enemy.health = enemy.attack + enemy.defense;
+                enemyCards.push(enemy);
+            }
+            
+            gameState.enemyCards = enemyCards;
+
+            let playerTurn = true;
+            let playerIndex = 0;
+            let enemyIndex = 0;
+
+            const turnInterval = setInterval(() => {
+                displayBattleCards(playerDeck, playerBattleCardsEl);
+                displayBattleCards(enemyCards, enemyBattleCardsEl);
+                
+                if (playerDeck.length === 0 || enemyCards.length === 0) {
+                    clearInterval(turnInterval);
+                    endBattle(playerDeck, enemyCards);
+                    return;
+                }
+
+                if (playerTurn) {
+                    const attacker = playerDeck[playerIndex];
+                    const defender = enemyCards[enemyIndex];
+                    const damage = Math.max(0, attacker.attack - defender.defense);
+                    defender.health -= damage;
+                    battleLogOverlay(`${attacker.name} attacks ${defender.name} for ${damage} damage!`);
+                    if (defender.health <= 0) {
+                        battleLogOverlay(`${defender.name} was defeated!`);
+                        enemyCards.splice(enemyIndex, 1);
+                        if (enemyIndex >= enemyCards.length) {
+                            enemyIndex = 0;
+                        }
+                    } else {
+                        enemyIndex++;
+                        if (enemyIndex >= enemyCards.length) {
+                            enemyIndex = 0;
+                        }
+                    }
+                } else {
+                    const attacker = enemyCards[enemyIndex];
+                    const defender = playerDeck[playerIndex];
+                    const damage = Math.max(0, attacker.attack - defender.defense);
+                    defender.health -= damage;
+                    battleLogOverlay(`${attacker.name} attacks ${defender.name} for ${damage} damage!`);
+                    if (defender.health <= 0) {
+                        battleLogOverlay(`${defender.name} was defeated!`);
+                        playerDeck.splice(playerIndex, 1);
+                        if (playerIndex >= playerDeck.length) {
+                            playerIndex = 0;
+                        }
+                    } else {
+                        playerIndex++;
+                        if (playerIndex >= playerDeck.length) {
+                            playerIndex = 0;
+                        }
+                    }
+                }
+                playerTurn = !playerTurn;
+            }, 500);
+        }
+
+        function endBattle(playerDeck, enemyCards) {
+            const isWin = playerDeck.length > 0;
+            const rewardsBoost = 1 + getAbilityValue("battleRewardsBoost");
+            const goldBoost = getAbilityValue("battleGold");
+            const manaBoost = getAbilityValue("battleMana");
+            const xpBoost = 1 + getAbilityValue("battleXP");
+
+            if (isWin) {
+                const goldReward = Math.round((gameState.stage * 10 + Math.floor(Math.random() * 20)) * rewardsBoost * (1 + goldBoost));
+                const manaReward = Math.round((gameState.stage * 5 + Math.floor(Math.random() * 10)) * rewardsBoost * (1 + manaBoost));
+                gameState.lastRewards = { gold: goldReward, mana: manaReward, xp: Math.round(10 * xpBoost) };
+                
+                battleLogOverlay(`You won the battle!`);
+                collectRewardsBtn.textContent = `Collect Rewards (+${goldReward} Gold, +${manaReward} Mana)`;
+                collectRewardsBtn.style.display = 'block';
+                
+            } else {
+                const consolationGold = Math.round(gameState.stage * 2 * rewardsBoost * (1 + goldBoost));
+                gameState.lastRewards = { gold: consolationGold, mana: 0, xp: Math.round(5 * xpBoost) };
+                battleLogOverlay(`You lost the battle.`);
+                collectRewardsBtn.textContent = `Collect Consolation Gold (+${consolationGold} Gold)`;
+                collectRewardsBtn.style.display = 'block';
+            }
+
+            const xpGain = gameState.lastRewards.xp;
+            playerDeck.forEach(card => addXP(findCardById(card.id), xpGain));
+            gameState.lastBattleTime = Date.now();
+            updateUI();
+        }
+
+        function collectRewards() {
+            if (gameState.lastRewards) {
+                addGold(gameState.lastRewards.gold);
+                addMana(gameState.lastRewards.mana);
+                if (gameState.lastRewards.mana > 0) {
+                    gameState.stage++;
+                    log(`You won! Gained ${gameState.lastRewards.gold} Gold and ${gameState.lastRewards.mana} Mana. You are now at Stage ${gameState.stage}.`);
+                } else {
+                    log(`You lost the battle. Gained ${gameState.lastRewards.gold} Gold.`);
+                }
+                gameState.lastRewards = null;
+                closeBattleOverlay();
+            }
+        }
+        
+        function performBattle() {
+            if (gameState.deck.length < DECK_SIZE) {
+                log(`You need ${DECK_SIZE} cards in your deck to battle!`);
+                return;
+            }
+            
+            runBattleSimulation();
+        }
+
+        function startGame() {
+            // Initial UI update to show correct starting values
+            updateUI();
+            
+            gameState.idleGoldInterval = setInterval(() => {
+                const goldPerSecond = 5 + getAbilityValue("idleGold");
+                addGold(goldPerSecond);
+            }, 1000);
+            gameState.manaInterval = setInterval(() => {
+                if (gameState.stage >= 5) {
+                    const manaPerSecond = 5 + getAbilityValue("idleMana");
+                    addMana(manaPerSecond);
+                }
+            }, 1000);
+            checkAndApplyOfflineProgress();
+        }
+
+        function checkAndApplyOfflineProgress() {
+            const currentTime = Date.now();
+            const timeElapsedInSeconds = (currentTime - gameState.lastUpdate) / 1000;
+            
+            // Only apply if the game was in the background for a significant amount of time
+            if (timeElapsedInSeconds > 2) {
+                const goldPerSecond = 5 + getAbilityValue("idleGold");
+                const goldGainedOffline = goldPerSecond * timeElapsedInSeconds;
+                gameState.gold += goldGainedOffline;
+
+                let manaGainedOffline = 0;
+                if (gameState.stage >= 5) {
+                    const manaPerSecond = 5 + getAbilityValue("idleMana");
+                    manaGainedOffline = manaPerSecond * timeElapsedInSeconds;
+                    gameState.mana += manaGainedOffline;
+                }
+                log(`Welcome back! Gained ${Math.round(goldGainedOffline)} Gold and ${Math.round(manaGainedOffline)} Mana while you were away.`);
+            }
+            gameState.lastUpdate = currentTime;
+            updateUI();
+        }
+
+        // Drag and Drop Event Listeners
+        deckDisplay.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            const draggingCardId = e.dataTransfer.getData('text/plain');
+            if (draggingCardId && !gameState.deck.includes(draggingCardId) && gameState.deck.length < DECK_SIZE) {
+                deckDisplay.style.borderColor = '#28a745';
+            }
+        });
+        deckDisplay.addEventListener('dragleave', () => {
+            deckDisplay.style.borderColor = '#999';
+        });
+        deckDisplay.addEventListener('drop', (e) => {
+            e.preventDefault();
+            const cardId = e.dataTransfer.getData('text/plain');
+            deckDisplay.style.borderColor = '#999';
+
+            if (cardId && !gameState.deck.includes(cardId) && gameState.deck.length < DECK_SIZE) {
+                gameState.deck.push(cardId);
+                const card = findCardById(cardId);
+                log(`${card.name} was added to your deck.`);
+                updateUI();
+            }
+        });
+
+        cardDisplay.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            cardDisplay.style.borderColor = '#999';
+        });
+        cardDisplay.addEventListener('dragleave', () => {
+             cardDisplay.style.borderColor = '#999';
+        });
+        cardDisplay.addEventListener('drop', (e) => {
+            e.preventDefault();
+            const cardId = e.dataTransfer.getData('text/plain');
+            cardDisplay.style.borderColor = '#999';
+
+            if (cardId && gameState.deck.includes(cardId)) {
+                gameState.deck = gameState.deck.filter(id => id !== cardId);
+                const card = findCardById(cardId);
+                log(`${card.name} was removed from your deck.`);
+                updateUI();
+            }
+        });
+
+        // Other Event Listeners
+        buyPackBtn.addEventListener('click', () => {
+            buyPack();
+        });
+
+        function buyPack() {
+            if (gameState.gold < 100) {
+                log("Not enough gold to buy a card pack!");
+                return;
+            }
+
+            addGold(-100);
+            
+            const cardsToDraw = gameState.packMultiplier;
+            const freeDrawChance = getAbilityValue("freeDrawChance");
+
+            for (let i = 0; i < cardsToDraw; i++) {
+                let newCardTemplate;
+                if (gameState.cards.length === 0) {
+                    newCardTemplate = fullCardPool.find(c => c.id === "goblinGrunt");
+                } else {
+                    newCardTemplate = getRandomCard();
+                }
+
+                const existingCard = gameState.cards.find(c => c.name === newCardTemplate.name);
+                if (existingCard) {
+                    addXP(existingCard, 10);
+                    log(`You got a duplicate of ${newCardTemplate.name} and gained 10 XP!`);
+                    showPullNotification(`+10 XP: ${newCardTemplate.name}`, newCardTemplate.rarity);
+                } else {
+                    const newCard = createNewCard(newCardTemplate);
+                    gameState.cards.push(newCard);
+                    log(`You got a new card: ${newCard.name}!`);
+                    showPullNotification(`New Card: ${newCard.name}!`, newCard.rarity);
+                }
+
+                const extraDrawChance = getAbilityValue("extraDraw");
+                if (Math.random() < extraDrawChance) {
+                    const extraCardTemplate = getRandomCard();
+                    const existingExtraCard = gameState.cards.find(c => c.name === extraCardTemplate.name);
+                    if (existingExtraCard) {
+                        addXP(existingExtraCard, 10);
+                        log(`You got an extra card and gained 10 XP!`);
+                        showPullNotification(`+10 XP: ${extraCardTemplate.name} (Extra)`, extraCardTemplate.rarity);
+                    } else {
+                        const extraCard = createNewCard(extraCardTemplate);
+                        gameState.cards.push(extraCard);
+                        log(`You got an extra card: ${extraCard.name}!`);
+                        showPullNotification(`Extra Card: ${extraCard.name}!`, extraCard.rarity);
+                    }
+                }
+            }
+
+            if (Math.random() < freeDrawChance) {
+                log("Your cards' abilities granted you a free draw!");
+                addGold(100);
+            }
+            
+            updateUI();
+        }
+
+        startBattleBtn.addEventListener('click', () => {
+            if (!gameState.autoBattleUnlocked) {
+                 performBattle();
+            }
+        });
+
+        upgradeCardBtn.addEventListener('click', () => {
+            const card = findCardById(gameState.selectedCardId);
+            const upgradeCost = getUpgradeCost(card.level);
+            
+            if (card && gameState.mana >= upgradeCost) {
+                addMana(-upgradeCost);
+                levelUpCard(card);
+                log(`${card.name} was upgraded to level ${card.level}.`);
+                updateUI();
+            } else {
+                log("Not enough mana or no card selected to upgrade.");
+            }
+        });
+        
+        closeBtn.addEventListener('click', () => {
+            document.getElementById('card-popup').classList.remove('open');
+            gameState.selectedCardId = null;
+            updateUI();
+        });
+
+        closeOverlayBtn.addEventListener('click', () => {
+            closeBattleOverlay();
+        });
+
+        collectRewardsBtn.addEventListener('click', () => {
+            collectRewards();
+        });
+        
+        document.querySelectorAll('.sort-btn').forEach(button => {
+            button.addEventListener('click', (e) => {
+                gameState.sortType = e.target.getAttribute('data-sort');
+                displayCards();
+            });
+        });
+        
+        upgradePack5xBtn.addEventListener('click', () => {
+            const cost = parseInt(upgradePack5xBtn.dataset.cost);
+            if (gameState.gold >= cost) {
+                addGold(-cost);
+                gameState.packMultiplier = 5;
+                log("You purchased the 5x Pack Open upgrade!");
+                updateUI();
+            }
+        });
+
+        upgradePack10xBtn.addEventListener('click', () => {
+            const cost = parseInt(upgradePack10xBtn.dataset.cost);
+            if (gameState.gold >= cost) {
+                addGold(-cost);
+                gameState.packMultiplier = 10;
+                log("You purchased the 10x Pack Open upgrade!");
+                updateUI();
+            }
+        });
+
+        upgradeAutoBattleBtn.addEventListener('click', () => {
+            const cost = parseInt(upgradeAutoBattleBtn.dataset.cost);
+            if (gameState.gold >= cost) {
+                addGold(-cost);
+                gameState.autoBattleUnlocked = true;
+                log("You unlocked Auto-Battle! Battle now runs automatically.");
+                if (gameState.autoBattleInterval) clearInterval(gameState.autoBattleInterval);
+                gameState.autoBattleInterval = setInterval(() => {
+                    const battleCooldown = 5000;
+                    if (Date.now() - gameState.lastBattleTime >= battleCooldown) {
+                        performBattle();
+                    }
+                }, 1000);
+                updateUI();
+            }
+        });
+
+        // Event listener for tab visibility change
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible') {
+                checkAndApplyOfflineProgress();
+            } else {
+                gameState.lastUpdate = Date.now();
+            }
+        });
+
+        startGame();
+    </script>
+</body>
+</html>
