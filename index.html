@@ -950,6 +950,7 @@
             const xpGain = gameState.lastRewards.xp;
             playerDeck.forEach(card => addXP(findCardById(card.id), xpGain));
             gameState.lastBattleTime = Date.now();
+            closeBattleOverlay();
             updateUI();
         }
 
