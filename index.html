@@ -645,6 +645,7 @@
         displayBonusStats();
         updateButtonStates();
         buyPackBtn.disabled = gameState.gold < 100; // Disable if not enough gold
+        upgradeCardBtn.disabled = (existingCard.getUpgradeCost < gamestate.mana);
     
     }
     function displayCards() {
@@ -760,11 +761,15 @@
         popup.classList.add('open');
         popup.style.display = 'block';
 
+        // Add this line to disable the upgrade button
+        upgradeCardBtn.disabled = (card.xp || 0) < (card.nextLevelXP || 10);
+
         // Re-attach close event to new button
         const newCloseBtn = popupContent.querySelector('.close-btn');
         newCloseBtn.addEventListener('click', closePopup);
         newCloseBtn.addEventListener('touchstart', closePopup);
     }
+
     function closePopup() {
         popup.classList.remove('open');
         popup.style.display = 'none';
