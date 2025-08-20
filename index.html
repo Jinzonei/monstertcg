@@ -372,6 +372,27 @@
         </div>
     </div>
 
+    <div id="battle-overlay" class="card-popup">
+        <div class="popup-content" style="max-width: 800px;">
+            <button class="close-btn" aria-label="Close">&times;</button>
+            <h2 style="text-align: center;">Battle</h2>
+            <div id="battle-simulation-log" style="height: 150px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; margin-bottom: 20px;"></div>
+            <div style="display: flex; justify-content: space-around; text-align: center;">
+                <div>
+                    <h3>Your Deck</h3>
+                    <div id="player-battle-cards" style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center;"></div>
+                </div>
+                <div>
+                    <h3>Enemy Deck</h3>
+                    <div id="enemy-battle-cards" style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center;"></div>
+                </div>
+            </div>
+            <div style="text-align: center; margin-top: 20px;">
+                <button id="collectRewardsBtn" class="btn" style="display: none;">Collect Rewards</button>
+            </div>
+        </div>
+    </div>
+
     <script>
     // --- GAME DATA ---
     const DECK_SIZE = 4;
@@ -441,6 +462,74 @@
         let manaCostReduction = getAbilityValue("manaCostReduction");
         return (baseCost + (level - 1) * 25) * (1 - manaCostReduction);
     }
+
+    function openBattleOverlay() {
+        battleOverlay.classList.add('open');
+        battleOverlay.style.display = 'block';
+    }
+
+    function closeBattleOverlay() {
+        battleOverlay.classList.remove('open');
+        battleOverlay.style.display = 'none';
+    }
+
+    function battleLogOverlay(msg) {
+        const entry = document.createElement('p');
+        entry.textContent = msg;
+        battleSimulationLogEl.prepend(entry);
+    }
+
+    function createEnemyCard(stage) {
+        // This is a simplified enemy creation function
+        // You can make this more complex later
+        const enemyId = 'enemy_' + Date.now();
+        const baseAttack = 5 + stage * 2;
+        const baseDefense = 5 + stage * 2;
+        return {
+            id: enemyId,
+            name: `Enemy ${stage}`,
+            attack: baseAttack,
+            defense: baseDefense,
+            rarity: 'Common'
+        };
+    }
+
+    function displayBattleCards(cards, containerEl) {
+        containerEl.innerHTML = '';
+        cards.forEach(card => {
+            const cardDiv = document.createElement('div');
+            cardDiv.className = `battle-card ${card.rarity}`;
+            cardDiv.style.width = '120px'; // Style for battle card
+            cardDiv.innerHTML = `
+                <h4>${card.name}</h4>
+                <p>⚔️ ${card.attack} | 🛡️ ${card.defense}</p>
+                <p>❤️ ${Math.max(0, card.health).toFixed(0)}</p>
+            `;
+            containerEl.appendChild(cardDiv);
+        });
+    }
+
+    function addXP(card, amount) {
+        if (!card) return;
+        card.xp = (card.xp || 0) + amount;
+        if (card.xp >= card.nextLevelXP) {
+            upgradeCard(card);
+        }
+    }
+
+    function addGold(amount) {
+        gameState.gold += amount;
+        log(`Gained ${amount} Gold.`);
+        updateUI();
+    }
+
+    function addMana(amount) {
+        gameState.mana += amount;
+        log(`Gained ${amount} Mana.`);
+        updateUI();
+    }
+
+
     function log(msg) {
         const entry = document.createElement('p');
         entry.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
@@ -457,6 +546,11 @@
     const cardDisplay = document.getElementById('card-display');
     const deckDisplay = document.getElementById('deck-display');
     const buyPackBtn = document.getElementById('buyPackBtn');
+    const collectRewardsBtn = document.getElementById('collectRewardsBtn');
+    const battleOverlay = document.getElementById('battle-overlay');
+    const battleSimulationLogEl = document.getElementById('battle-simulation-log');
+    const playerBattleCardsEl = document.getElementById('player-battle-cards');
+    const enemyBattleCardsEl = document.getElementById('enemy-battle-cards');
 
     const pullNotification = document.getElementById('pull-notification');
 
@@ -679,6 +773,8 @@
     closeBtn.addEventListener('click', closePopup);
     closeBtn.addEventListener('touchstart', closePopup);
     startBattleBtn.addEventListener('click', performBattle);
+    collectRewardsBtn.addEventListener('click', collectRewards);
+    battleOverlay.querySelector('.close-btn').addEventListener('click', closeBattleOverlay);
 
     // Close popup when clicking outside content
     popup.addEventListener('click', function(e) {
