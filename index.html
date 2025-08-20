@@ -374,7 +374,8 @@
 
     <div id="battle-overlay" class="card-popup">
         <div class="popup-content" style="max-width: 800px;">
-            <button class="close-btn" aria-label="Close">&times;</button>
+            <!-- Give this button a unique ID -->
+            <button id="battleCloseBtn" class="close-btn" aria-label="Close">&times;</button>
             <h2 style="text-align: center;">Battle</h2>
             <div id="battle-simulation-log" style="height: 150px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; margin-bottom: 20px;"></div>
             <div style="display: flex; justify-content: space-around; text-align: center;">
@@ -392,6 +393,7 @@
             </div>
         </div>
     </div>
+
 
     <script>
     // --- GAME DATA ---
@@ -560,6 +562,7 @@
     const deckDisplay = document.getElementById('deck-display');
     const buyPackBtn = document.getElementById('buyPackBtn');
     const collectRewardsBtn = document.getElementById('collectRewardsBtn');
+    const battleCloseBtn = document.getElementById('battleCloseBtn'); // new reference
     const battleOverlay = document.getElementById('battle-overlay');
     const battleSimulationLogEl = document.getElementById('battle-simulation-log');
     const playerBattleCardsEl = document.getElementById('player-battle-cards');
@@ -791,6 +794,7 @@
     closeBtn.addEventListener('click', closePopup);
     closeBtn.addEventListener('touchstart', closePopup);
     startBattleBtn.addEventListener('click', performBattle);
+    battleCloseBtn.addEventListener('click', closeBattleOverlay); // bind close
     collectRewardsBtn.addEventListener('click', collectRewards);
     battleOverlay.querySelector('.close-btn').addEventListener('click', closeBattleOverlay);
 
@@ -950,7 +954,6 @@
             const xpGain = gameState.lastRewards.xp;
             playerDeck.forEach(card => addXP(findCardById(card.id), xpGain));
             gameState.lastBattleTime = Date.now();
-            closeBattleOverlay();
             updateUI();
         }
 
