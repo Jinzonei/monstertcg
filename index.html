@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Monster TCG</title>
     <style>
         body {
@@ -21,263 +21,75 @@
             border-radius: 8px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
         }
-        h1, h2 {
-            text-align: center;
-            color: #444;
-        }
-        .section {
-            margin-bottom: 20px;
-            padding: 15px;
-            background-color: #fafafa;
-            border-radius: 6px;
-            border: 1px solid #eee;
-        }
+        h1, h2 { text-align: center; color: #444; }
+        .section { margin-bottom: 20px; padding: 15px; background-color: #fafafa; border-radius: 6px; border: 1px solid #eee; }
+
         .resource-display {
-            display: flex;
-            justify-content: space-around;
-            flex-wrap: wrap;
-            text-align: center;
-            font-size: 1.2em;
-            font-weight: bold;
-            margin-bottom: 20px;
+            display: flex; justify-content: space-around; flex-wrap: wrap; text-align: center; font-size: 1.2em; font-weight: bold; margin-bottom: 20px;
         }
-        .resource-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 0 10px;
-        }
-        .resource-value {
-            font-size: 1.5em;
-        }
-        .resource-per-second {
-            font-size: 0.8em;
-            color: #777;
-        }
-        .button-group {
-            text-align: center;
-            margin-top: 15px;
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 10px;
-        }
-        .btn {
-            padding: 10px 20px;
-            font-size: 1em;
-            cursor: pointer;
-            border: none;
-            border-radius: 5px;
-            color: #fff;
-            background-color: #007bff;
-            transition: background-color 0.3s;
-        }
-        .btn:hover {
-            background-color: #0056b3;
-        }
-        .btn:disabled {
-            background-color: #ccc;
-            cursor: not-allowed;
-        }
-        #card-display {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            justify-content: center;
-        }
-        #deck-display {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            justify-content: center;
-            border: 2px dashed #999;
-            padding: 10px;
-            border-radius: 8px;
-            min-height: 180px;
-            align-items: center;
-        }
-        .card {
-            background-color: #fff;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            padding: 10px;
-            width: 150px;
-            text-align: center;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
-            position: relative;
-        }
-        .card.selected {
-            border: 2px solid #007bff;
-        }
-        .card.in-deck {
-            border: 2px solid #28a745;
-        }
+        .resource-item { display: flex; flex-direction: column; align-items: center; padding: 0 10px; }
+        .resource-per-second { font-size: 0.8em; color: #777; }
+
+        .button-group { text-align: center; margin-top: 15px; display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
+        .btn { padding: 10px 20px; font-size: 1em; cursor: pointer; border: none; border-radius: 5px; color: #fff; background-color: #007bff; transition: background-color 0.3s; }
+        .btn:hover { background-color: #0056b3; }
+        .btn:disabled { background-color: #ccc; cursor: not-allowed; }
+
+        #card-display { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
+        #deck-display { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; border: 2px dashed #999; padding: 10px; border-radius: 8px; min-height: 180px; align-items: center; }
+
+        .card { background-color: #fff; border: 1px solid #ddd; border-radius: 8px; padding: 10px; width: 150px; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1); cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; position: relative; }
+        .card.selected { border: 2px solid #007bff; }
+        .card.in-deck { border: 2px solid #28a745; }
         .card.Common { background-color: #b3e0ff; }
         .card.Uncommon { background-color: #c2f0c2; }
         .card.Rare { background-color: #ffccff; }
         .card.Epic { background-color: #ffb3b3; }
         .card.Legendary { background-color: #fffacd; }
-        .card .hover-popup {
-            display: none;
-            position: absolute;
-            top: 0;
-            left: 100%;
-            margin-left: 10px;
-            padding: 10px;
-            background-color: rgba(255, 255, 255, 0.95);
-            border: 1px solid #ccc;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-            font-size: 0.9em;
-            width: 200px;
-            z-index: 100;
-        }
-        .card:hover .hover-popup {
-            display: block;
-        }
-        .card .hover-popup h5 {
-            margin: 0 0 5px 0;
-        }
-        .card .hover-popup p {
-            margin: 0;
-        }
-        #battle-log {
-            height: 150px;
-            overflow-y: auto;
-            border: 1px solid #ddd;
-            padding: 10px;
-            background-color: #f9f9f9;
-            border-radius: 6px;
-        }
-        .card-popup {
-            display: none; /* Hide by default */
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0,0,0,0.5);
-            z-index: 1000;
-        }
-        .card-popup.open {
-            display: block;
-        }
-        .popup-content {
-            position: relative;
-            background: #fff;
-            margin: 40px auto;
-            padding: 20px;
-            max-width: 350px;
-            border-radius: 8px;
-        }
-        .close-btn {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            font-size: 2em;
-            background: none;
-            border: none;
-            cursor: pointer;
-        }
-        #pull-notification {
-            position: fixed;
-            top: 18px;
-            left: 50%;
-            transform: translateX(-50%);
-            min-width: 180px;
-            max-width: 80vw;
-            padding: 12px 24px;
-            border-radius: 24px;
-            font-size: 1.2em;
-            font-weight: bold;
-            color: #222;
-            z-index: 2000;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-            text-align: center;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.4s;
-        }
-        #pull-notification.show {
-            opacity: 1;
-            pointer-events: auto;
-        }
+
+        .card .hover-popup { display: none; position: absolute; top: 0; left: 100%; margin-left: 10px; padding: 10px; background-color: rgba(255,255,255,0.95); border: 1px solid #ccc; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.2); font-size: 0.9em; width: 200px; z-index: 100; }
+        .card:hover .hover-popup { display: block; }
+
+        #battle-log { height: 150px; overflow-y: auto; border: 1px solid #ddd; padding: 10px; background-color: #f9f9f9; border-radius: 6px; }
+
+        /* Generic popup (card details) */
+        .card-popup { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; }
+        .card-popup.open { display: block; }
+        .popup-content { position: relative; background: #fff; margin: 40px auto; padding: 20px; max-width: 350px; border-radius: 8px; }
+        .close-btn { position: absolute; top: 10px; right: 10px; font-size: 2em; background: none; border: none; cursor: pointer; }
+
+        /* Battle overlay modal */
+        #battle-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); z-index: 2000; }
+        #battle-overlay.open { display: flex !important; justify-content: center; align-items: center; }
+        .battle-overlay-content { background: #fff; border-radius: 12px; padding: 20px; width: 90%; max-width: 800px; max-height: 90vh; overflow-y: auto; position: relative; }
+        #battleCloseBtn { position: absolute; top: 10px; right: 10px; font-size: 28px; background: none; border: none; cursor: pointer; }
+        #battle-simulation-log { height: 150px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; margin-bottom: 20px; background: #fafafa; border-radius: 6px; }
+        .battle-columns { display: flex; justify-content: space-around; text-align: center; gap: 20px; }
+        .battle-cards { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
+
+        #pull-notification { position: fixed; top: 18px; left: 50%; transform: translateX(-50%); min-width: 180px; max-width: 80vw; padding: 12px 24px; border-radius: 24px; font-size: 1.2em; font-weight: bold; color: #222; z-index: 2000; box-shadow: 0 2px 8px rgba(0,0,0,0.15); text-align: center; opacity: 0; pointer-events: none; transition: opacity 0.4s; }
+        #pull-notification.show { opacity: 1; pointer-events: auto; }
         #pull-notification.Common { background: #b3e0ff; }
         #pull-notification.Uncommon { background: #c2f0c2; }
         #pull-notification.Rare { background: #ffccff; }
         #pull-notification.Epic { background: #ffb3b3; }
         #pull-notification.Legendary { background: #fffacd; }
+
         @media (max-width: 700px) {
-            body {
-                padding: 5px;
-            }
-            .container {
-                max-width: 100vw;
-                padding: 8px;
-                border-radius: 0;
-                box-shadow: none;
-            }
-            h1, h2 {
-                font-size: 1.3em;
-            }
-            .section {
-                padding: 6px;
-                margin-bottom: 12px;
-            }
-            .resource-display {
-                flex-direction: column;
-                font-size: 1em;
-                gap: 8px;
-            }
-            .button-group, .deck-controls, .upgrades-container {
-                flex-direction: column !important;
-                gap: 5px !important;
-            }
-            #deck-display, #card-display {
-                flex-direction: row;
-                flex-wrap: wrap;
-                gap: 4px;
-                padding: 4px;
-                min-height: 100px;
-            }
-            .card, .battle-card {
-                width: 95px !important;
-                min-width: 85px;
-                padding: 4px;
-                font-size: 0.82em;
-            }
-            .card .hover-popup {
-                left: auto;
-                right: 0;
-                top: 100%;
-                width: 170px;
-                margin-left: 0;
-                margin-top: 6px;
-            }
-            #battle-log, .battle-log-overlay {
-                font-size: 0.85em;
-                height: 100px;
-            }
-            .card-popup {
-                width: 100vw !important;
-                right: 0 !important;
-                left: 0 !important;
-                top: 0 !important;
-                border-radius: 0 !important;
-                box-shadow: none !important;
-                height: 100vh !important;
-                max-width: none !important;
-            }
-            .popup-content {
-                padding: 12px !important;
-            }
-            .close-btn {
-                font-size: 32px !important;
-            }
-            .popup-buttons {
-                flex-direction: column;
-                gap: 7px;
-                margin-top: 16px;
-            }
+            body { padding: 5px; }
+            .container { max-width: 100vw; padding: 8px; border-radius: 0; box-shadow: none; }
+            h1, h2 { font-size: 1.3em; }
+            .section { padding: 6px; margin-bottom: 12px; }
+            .resource-display { flex-direction: column; font-size: 1em; gap: 8px; }
+            .button-group, .deck-controls, .upgrades-container { flex-direction: column !important; gap: 5px !important; }
+            #deck-display, #card-display { flex-direction: row; flex-wrap: wrap; gap: 4px; padding: 4px; min-height: 100px; }
+            .card, .battle-card { width: 95px !important; min-width: 85px; padding: 4px; font-size: 0.82em; }
+            .card .hover-popup { left: auto; right: 0; top: 100%; width: 170px; margin-left: 0; margin-top: 6px; }
+            #battle-log, .battle-log-overlay { font-size: 0.85em; height: 100px; }
+            .card-popup { width: 100vw !important; right: 0 !important; left: 0 !important; top: 0 !important; border-radius: 0 !important; box-shadow: none !important; height: 100vh !important; max-width: none !important; }
+            .popup-content { padding: 12px !important; }
+            .close-btn { font-size: 32px !important; }
+            .popup-buttons { flex-direction: column; gap: 7px; margin-top: 16px; }
         }
     </style>
 </head>
@@ -289,17 +101,13 @@
         <p>Welcome to the Monster TCG! Collect cards, upgrade them, and battle to progress.</p>
 
         <div class="section resource-display">
-            <div class="resource-item">
-                Gold: <span id="gold">400</span>
+            <div class="resource-item">Gold: <span id="gold">400</span>
                 <div class="resource-per-second">+<span id="gold-gain">0</span>/s</div>
             </div>
-            <div class="resource-item">
-                Mana: <span id="mana">100</span>
+            <div class="resource-item">Mana: <span id="mana">100</span>
                 <div class="resource-per-second">+<span id="mana-gain">0</span>/s</div>
             </div>
-            <div class="resource-item">
-                Stage: <span id="stage">1</span>
-            </div>
+            <div class="resource-item">Stage: <span id="stage">1</span></div>
         </div>
 
         <div class="section">
@@ -348,12 +156,11 @@
 
         <div class="section">
             <h2>Current Bonuses</h2>
-            <div id="bonus-stats">
-            </div>
+            <div id="bonus-stats"></div>
         </div>
     </div>
 
-    <!-- FIX: Do not add 'open' class by default -->
+    <!-- Card Details Popup -->
     <div id="card-popup" class="card-popup">
         <div class="popup-content">
             <button class="close-btn" aria-label="Close">&times;</button>
@@ -372,20 +179,20 @@
         </div>
     </div>
 
-    <div id="battle-overlay" class="card-popup">
-        <div class="popup-content" style="max-width: 800px;">
-            <!-- Give this button a unique ID -->
+    <!-- Battle Overlay Modal -->
+    <div id="battle-overlay">
+        <div class="battle-overlay-content">
             <button id="battleCloseBtn" class="close-btn" aria-label="Close">&times;</button>
             <h2 style="text-align: center;">Battle</h2>
-            <div id="battle-simulation-log" style="height: 150px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; margin-bottom: 20px;"></div>
-            <div style="display: flex; justify-content: space-around; text-align: center;">
+            <div id="battle-simulation-log"></div>
+            <div class="battle-columns">
                 <div>
                     <h3>Your Deck</h3>
-                    <div id="player-battle-cards" style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center;"></div>
+                    <div id="player-battle-cards" class="battle-cards"></div>
                 </div>
                 <div>
                     <h3>Enemy Deck</h3>
-                    <div id="enemy-battle-cards" style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center;"></div>
+                    <div id="enemy-battle-cards" class="battle-cards"></div>
                 </div>
             </div>
             <div style="text-align: center; margin-top: 20px;">
@@ -393,7 +200,6 @@
             </div>
         </div>
     </div>
-
 
     <script>
     // --- GAME DATA ---
@@ -446,20 +252,19 @@
     // --- GAME STATE ---
     const gameState = {
         gold: 400,
-        mana: 0,
+        mana: 100, // start at 100 to match UI
         stage: 1,
         cards: [],
         deck: [],
         selectedCardId: null,
         sortType: 'level',
         packMultiplier: 1,
-        goldPerSecond: 5, // Example base value
-        manaPerSecond: 0, // Example base value
+        goldPerSecond: 5,
+        manaPerSecond: 0,
     };
 
     // --- UTILS ---
     function getAbilityValue(type) {
-        // Example: sum idleGold from all cards
         let value = 0;
         let cardsToCheck = type in allAbilities ? (allAbilities[type].type === "active" ? gameState.deck.map(id => findCardById(id)) : gameState.cards) : [];
         cardsToCheck.forEach(card => {
@@ -469,44 +274,18 @@
         });
         return value;
     }
-    function findCardById(id) {
-        return gameState.cards.find(card => card.id === id);
-    }
-    function getUpgradeCost(level) {
-        let baseCost = 50;
-        let manaCostReduction = getAbilityValue("manaCostReduction");
-        return (baseCost + (level - 1) * 25) * (1 - manaCostReduction);
-    }
+    function findCardById(id) { return gameState.cards.find(card => card.id === id); }
 
-    function openBattleOverlay() {
-        battleOverlay.classList.add('open');
-        battleOverlay.style.display = 'block';
-    }
-
-    function closeBattleOverlay() {
-        battleOverlay.classList.remove('open');
-        battleOverlay.style.display = 'none';
-    }
-
-    function battleLogOverlay(msg) {
-        const entry = document.createElement('p');
-        entry.textContent = msg;
-        battleSimulationLogEl.prepend(entry);
-    }
+    // --- BATTLE UI HELPERS ---
+    function openBattleOverlay() { battleOverlay.classList.add('open'); }
+    function closeBattleOverlay() { battleOverlay.classList.remove('open'); }
+    function battleLogOverlay(msg) { const entry = document.createElement('p'); entry.textContent = msg; battleSimulationLogEl.prepend(entry); }
 
     function createEnemyCard(stage) {
-        // This is a simplified enemy creation function
-        // You can make this more complex later
-        const enemyId = 'enemy_' + Date.now();
+        const enemyId = 'enemy_' + Date.now() + '_' + Math.floor(Math.random()*10000);
         const baseAttack = 5 + stage * 2;
         const baseDefense = 5 + stage * 2;
-        return {
-            id: enemyId,
-            name: `Enemy ${stage}`,
-            attack: baseAttack,
-            defense: baseDefense,
-            rarity: 'Common'
-        };
+        return { id: enemyId, name: `Enemy ${stage}`, attack: baseAttack, defense: baseDefense, rarity: 'Common' };
     }
 
     function displayBattleCards(cards, containerEl) {
@@ -514,42 +293,16 @@
         cards.forEach(card => {
             const cardDiv = document.createElement('div');
             cardDiv.className = `battle-card ${card.rarity}`;
-            cardDiv.style.width = '120px'; // Style for battle card
-            cardDiv.innerHTML = `
-                <h4>${card.name}</h4>
-                <p>⚔️ ${card.attack} | 🛡️ ${card.defense}</p>
-                <p>❤️ ${Math.max(0, card.health).toFixed(0)}</p>
-            `;
+            cardDiv.style.width = '120px';
+            cardDiv.innerHTML = `<h4>${card.name}</h4><p>⚔️ ${card.attack} | 🛡️ ${card.defense}</p><p>❤️ ${Math.max(0, card.health).toFixed(0)}</p>`;
             containerEl.appendChild(cardDiv);
         });
     }
 
-    function addXP(card, amount) {
-        if (!card) return;
-        card.xp = (card.xp || 0) + amount;
-        if (card.xp >= card.nextLevelXP) {
-            upgradeCard(card);
-        }
-    }
-
-    function addGold(amount) {
-        gameState.gold += amount;
-        log(`Gained ${amount} Gold.`);
-        updateUI();
-    }
-
-    function addMana(amount) {
-        gameState.mana += amount;
-        log(`Gained ${amount} Mana.`);
-        updateUI();
-    }
-
-
-    function log(msg) {
-        const entry = document.createElement('p');
-        entry.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
-        document.getElementById('battle-log').prepend(entry);
-    }
+    function addXP(card, amount) { if (!card) return; card.xp = (card.xp || 0) + amount; if (card.xp >= card.nextLevelXP) upgradeCard(card); }
+    function addGold(amount) { gameState.gold += amount; log(`Gained ${amount} Gold.`); updateUI(); }
+    function addMana(amount) { gameState.mana += amount; log(`Gained ${amount} Mana.`); updateUI(); }
+    function log(msg) { const entry = document.createElement('p'); entry.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`; document.getElementById('battle-log').prepend(entry); }
 
     // --- UI ELEMENTS ---
     const goldEl = document.getElementById('gold');
@@ -561,66 +314,15 @@
     const cardDisplay = document.getElementById('card-display');
     const deckDisplay = document.getElementById('deck-display');
     const buyPackBtn = document.getElementById('buyPackBtn');
+    const startBattleBtn = document.getElementById('startBattleBtn');
+
     const collectRewardsBtn = document.getElementById('collectRewardsBtn');
-    const battleCloseBtn = document.getElementById('battleCloseBtn'); // new reference
     const battleOverlay = document.getElementById('battle-overlay');
+    const battleCloseBtn = document.getElementById('battleCloseBtn');
     const battleSimulationLogEl = document.getElementById('battle-simulation-log');
     const playerBattleCardsEl = document.getElementById('player-battle-cards');
     const enemyBattleCardsEl = document.getElementById('enemy-battle-cards');
 
-    const pullNotification = document.getElementById('pull-notification');
-
-    function showPullNotification(card) {
-        pullNotification.textContent = card.name;
-        pullNotification.className = `show ${card.rarity}`;
-        pullNotification.style.display = 'block';
-        setTimeout(() => {
-            pullNotification.classList.remove('show');
-            setTimeout(() => {
-                pullNotification.style.display = 'none';
-            }, 400);
-        }, 2000);
-    }
-
-    buyPackBtn.addEventListener('click', function() {
-        const packCost = 100;
-        if (gameState.gold >= packCost) {
-            gameState.gold -= packCost;
-            // Pick a random card from the pool
-            const baseCard = fullCardPool[Math.floor(Math.random() * fullCardPool.length)];
-            // Check for duplicate by base id (not unique id)
-            const existingCard = gameState.cards.find(c => c.id.startsWith(baseCard.id));
-            if (existingCard) {
-                existingCard.xp = (existingCard.xp || 0) + 10;
-                // Auto level up if enough XP
-                while (existingCard.xp >= existingCard.nextLevelXP) {
-                    upgradeCard(existingCard);
-                }
-                showPullNotification({
-                    name: `${existingCard.name} gains 10 XP!`,
-                    rarity: existingCard.rarity
-                });
-            } else {
-                // Clone and initialize card properties
-                const newCard = {
-                    ...baseCard,
-                    id: baseCard.id + '_' + Date.now() + '_' + Math.floor(Math.random() * 10000), // unique id
-                    level: 1,
-                    xp: 0,
-                    nextLevelXP: 10,
-                    attack: baseCard.baseAttack,
-                    defense: baseCard.baseDefense
-                };
-                gameState.cards.push(newCard);
-                showPullNotification(newCard); // Show notification
-            }
-            updateUI(); // Show new card or XP
-        } else {
-            alert("Not enough gold!");
-        }
-    });
-
-    const startBattleBtn = document.getElementById('startBattleBtn');
     const upgradeCardBtn = document.getElementById('upgradeCardBtn');
     const addToDeckBtn = document.getElementById('addToDeckBtn');
     const removeFromDeckBtn = document.getElementById('removeFromDeckBtn');
@@ -629,26 +331,45 @@
     const closeBtn = popup.querySelector('.close-btn');
     const sortBtns = document.querySelectorAll('.sort-btn');
 
-    // --- GOLD GENERATION ---
-    function updateGoldDisplay() {
-        goldEl.textContent = gameState.gold.toFixed(1);
-        goldGainEl.textContent = gameState.goldPerSecond.toFixed(1);
-        manaEl.textContent = gameState.mana.toFixed(1);
-        manaGainEl.textContent = gameState.manaPerSecond.toFixed(1);
-        stageEl.textContent = gameState.stage;
+    const pullNotification = document.getElementById('pull-notification');
+
+    function showPullNotification(card) {
+        pullNotification.textContent = card.name;
+        pullNotification.className = `show ${card.rarity}`;
+        pullNotification.style.display = 'block';
+        setTimeout(() => { pullNotification.classList.remove('show'); setTimeout(() => { pullNotification.style.display = 'none'; }, 400); }, 2000);
     }
 
+    // Buy pack
+    buyPackBtn.addEventListener('click', function() {
+        const packCost = 100;
+        if (gameState.gold >= packCost) {
+            gameState.gold -= packCost;
+            const baseCard = fullCardPool[Math.floor(Math.random() * fullCardPool.length)];
+            const existingCard = gameState.cards.find(c => c.id.startsWith(baseCard.id));
+            if (existingCard) {
+                existingCard.xp = (existingCard.xp || 0) + 10;
+                while (existingCard.xp >= existingCard.nextLevelXP) upgradeCard(existingCard);
+                showPullNotification({ name: `${existingCard.name} gains 10 XP!`, rarity: existingCard.rarity });
+            } else {
+                const newCard = { ...baseCard, id: baseCard.id + '_' + Date.now() + '_' + Math.floor(Math.random() * 10000), level: 1, xp: 0, nextLevelXP: 10, attack: baseCard.baseAttack, defense: baseCard.baseDefense };
+                gameState.cards.push(newCard);
+                showPullNotification(newCard);
+            }
+            updateUI();
+        } else { alert("Not enough gold!"); }
+    });
+
+    // Gold/Mana tick
     setInterval(() => {
         const goldGain = 5 + getAbilityValue("idleGold");
         gameState.gold += goldGain;
         gameState.goldPerSecond = goldGain;
-
-        // Example mana generation (set manaPerSecond if you want)
         gameState.mana += gameState.manaPerSecond || 0;
         updateUI();
     }, 1000);
 
-    // --- RENDERERS ---
+    // Renderers
     function updateUI() {
         goldEl.textContent = gameState.gold.toFixed(1);
         manaEl.textContent = gameState.mana.toFixed(1);
@@ -660,70 +381,39 @@
         displayDeckCards();
         displayBonusStats();
         updateButtonStates();
-        buyPackBtn.disabled = gameState.gold < 100; // Disable if not enough gold
-        upgradeCardBtn.disabled = (existingCard.getUpgradeCost < gamestate.mana);
-    
+        buyPackBtn.disabled = gameState.gold < 100;
     }
     function displayCards() {
         cardDisplay.innerHTML = '';
         const cardsNotInDeck = gameState.cards.filter(c => !gameState.deck.includes(c.id));
-        if (cardsNotInDeck.length === 0) {
-            cardDisplay.innerHTML = '<p>Your cards are either in your deck or you haven\'t bought any yet.</p>';
-            return;
-        }
+        if (cardsNotInDeck.length === 0) { cardDisplay.innerHTML = "<p>Your cards are either in your deck or you haven't bought any yet.</p>"; return; }
         let sortedCards = [...cardsNotInDeck];
-        if (gameState.sortType === 'level') sortedCards.sort((a, b) => b.level - a.level || b.xp - a.xp);
-        else if (gameState.sortType === 'rarity') sortedCards.sort((a, b) => rarityOrder[b.rarity] - rarityOrder[a.rarity]);
-        else if (allAbilities[gameState.sortType]) sortedCards.sort((a, b) => {
-            const valA = (a.ability && a.ability.type === gameState.sortType) ? a.ability.value * a.level : 0;
-            const valB = (b.ability && b.ability.type === gameState.sortType) ? b.ability.value * b.level : 0;
-            return valB - valA || b.level - a.level;
-        });
-        sortedCards.forEach(card => {
-            const cardDiv = createCardElement(card);
-            cardDiv.classList.add('not-in-deck');
-            cardDisplay.appendChild(cardDiv);
-        });
+        if (gameState.sortType === 'level') sortedCards.sort((a,b)=> b.level - a.level || b.xp - a.xp);
+        else if (gameState.sortType === 'rarity') sortedCards.sort((a,b)=> rarityOrder[b.rarity] - rarityOrder[a.rarity]);
+        else if (allAbilities[gameState.sortType]) sortedCards.sort((a,b)=>{ const valA = (a.ability && a.ability.type === gameState.sortType) ? a.ability.value * a.level : 0; const valB = (b.ability && b.ability.type === gameState.sortType) ? b.ability.value * b.level : 0; return valB - valA || b.level - a.level; });
+        sortedCards.forEach(card => { const cardDiv = createCardElement(card); cardDiv.classList.add('not-in-deck'); cardDisplay.appendChild(cardDiv); });
     }
     function displayDeckCards() {
         deckDisplay.innerHTML = '';
         const deckCards = gameState.deck.map(id => findCardById(id));
         if (deckCards.length === 0) deckDisplay.innerHTML = '<p>Drag or add cards here to form your battle deck!</p>';
-        deckCards.forEach(card => {
-            const cardDiv = createCardElement(card);
-            cardDiv.classList.add('in-deck');
-            deckDisplay.appendChild(cardDiv);
-        });
+        deckCards.forEach(card => { const cardDiv = createCardElement(card); cardDiv.classList.add('in-deck'); deckDisplay.appendChild(cardDiv); });
     }
     function createCardElement(card) {
         const cardDiv = document.createElement('div');
         cardDiv.className = `card ${card.rarity}`;
         cardDiv.setAttribute('data-card-id', card.id);
-        cardDiv.addEventListener('click', () => {
-            gameState.selectedCardId = card.id;
-            showCardDetails(card);
-        });
-        let abilityIcon = '';
-        let hoverPopupHtml = '';
+        cardDiv.addEventListener('click', () => { gameState.selectedCardId = card.id; showCardDetails(card); });
+        let abilityIcon = ''; let hoverPopupHtml = '';
         if (card.ability && allAbilities[card.ability.type]) {
             const abilityInfo = allAbilities[card.ability.type];
             abilityIcon = abilityInfo.icon;
             const formattedVal = (card.ability.value * (abilityInfo.isPercentage ? 100 : 1)).toFixed(2);
             const abilityText = card.ability.description.replace('{val}', formattedVal);
-            hoverPopupHtml = `
-                <div class="hover-popup">
-                    <h5>${abilityInfo.icon} ${abilityInfo.name}</h5>
-                    <p>${abilityText}</p>
-                </div>
-            `;
+            hoverPopupHtml = `<div class="hover-popup"><h5>${abilityInfo.icon} ${abilityInfo.name}</h5><p>${abilityText}</p></div>`;
         }
         if (gameState.selectedCardId === card.id) cardDiv.classList.add('selected');
-        cardDiv.innerHTML = `
-            <h4>${card.name}</h4>
-            <p>${abilityIcon} Lvl: ${card.level}</p>
-            <p>⚔️ ${card.attack} | 🛡️ ${card.defense}</p>
-            ${hoverPopupHtml}
-        `;
+        cardDiv.innerHTML = `<h4>${card.name}</h4><p>${abilityIcon} Lvl: ${card.level}</p><p>⚔️ ${card.attack} | 🛡️ ${card.defense}</p>${hoverPopupHtml}`;
         return cardDiv;
     }
     function displayBonusStats() {
@@ -737,12 +427,9 @@
             bonusStatsEl.innerHTML += `<div class="bonus-stat-item"><h4>${abilityInfo.icon} ${abilityInfo.name}</h4><p>${displayVal}</p></div>`;
         }
     }
-    function updateButtonStates() {
-        buyPackBtn.disabled = gameState.gold < 100;
-        startBattleBtn.disabled = gameState.deck.length < DECK_SIZE;
-    }
+    function updateButtonStates() { buyPackBtn.disabled = gameState.gold < 100; startBattleBtn.disabled = gameState.deck.length < DECK_SIZE; }
 
-    // --- POPUP LOGIC ---
+    // Popup logic
     function showCardDetails(card) {
         if (!card) return;
         gameState.selectedCardId = card.id;
@@ -759,230 +446,123 @@
             const formattedVal = (card.ability.value * (abilityInfo.isPercentage ? 100 : 1)).toFixed(2);
             abilityText.textContent = card.ability.description.replace('{val}', formattedVal);
             abilityLabel.textContent = `${abilityInfo.type === 'idle' ? 'Idle Ability' : 'Active Ability'}:`;
-        } else {
-            abilityText.textContent = 'None';
-            abilityLabel.textContent = 'Ability:';
-        }
-        // Deck buttons
-        if (gameState.deck.includes(card.id)) {
-            addToDeckBtn.style.display = 'none';
-            removeFromDeckBtn.style.display = 'inline-block';
-        } else if (gameState.deck.length < DECK_SIZE) {
-            addToDeckBtn.style.display = 'inline-block';
-            removeFromDeckBtn.style.display = 'none';
-        } else {
-            addToDeckBtn.style.display = 'none';
-            removeFromDeckBtn.style.display = 'none';
-        }
-        popup.classList.add('open');
-        popup.style.display = 'block';
-
-        // Add this line to disable the upgrade button
+        } else { abilityText.textContent = 'None'; abilityLabel.textContent = 'Ability:'; }
+        if (gameState.deck.includes(card.id)) { addToDeckBtn.style.display = 'none'; removeFromDeckBtn.style.display = 'inline-block'; }
+        else if (gameState.deck.length < DECK_SIZE) { addToDeckBtn.style.display = 'inline-block'; removeFromDeckBtn.style.display = 'none'; }
+        else { addToDeckBtn.style.display = 'none'; removeFromDeckBtn.style.display = 'none'; }
+        popup.classList.add('open'); popup.style.display = 'block';
         upgradeCardBtn.disabled = (card.xp || 0) < (card.nextLevelXP || 10);
-
-        // Re-attach close event to new button
         const newCloseBtn = popupContent.querySelector('.close-btn');
         newCloseBtn.addEventListener('click', closePopup);
         newCloseBtn.addEventListener('touchstart', closePopup);
     }
-
-    function closePopup() {
-        popup.classList.remove('open');
-        popup.style.display = 'none';
-    }
-
+    function closePopup() { popup.classList.remove('open'); popup.style.display = 'none'; }
     closeBtn.addEventListener('click', closePopup);
     closeBtn.addEventListener('touchstart', closePopup);
-    startBattleBtn.addEventListener('click', performBattle);
-    battleCloseBtn.addEventListener('click', closeBattleOverlay); // bind close
-    collectRewardsBtn.addEventListener('click', collectRewards);
-    battleOverlay.querySelector('.close-btn').addEventListener('click', closeBattleOverlay);
 
-    // Close popup when clicking outside content
-    popup.addEventListener('click', function(e) {
-        if (e.target === popup) closePopup();
-    });
-
-    addToDeckBtn.addEventListener('click', function() {
-        const cardId = gameState.selectedCardId;
-        if (!cardId) return;
-        if (gameState.deck.length < DECK_SIZE && !gameState.deck.includes(cardId)) {
-            gameState.deck.push(cardId);
-            updateUI();
-            closePopup();
-        }
-    });
-
-    removeFromDeckBtn.addEventListener('click', function() {
-        const cardId = gameState.selectedCardId;
-        if (!cardId) return;
-        const idx = gameState.deck.indexOf(cardId);
-        if (idx !== -1) {
-            gameState.deck.splice(idx, 1);
-            updateUI();
-            closePopup();
-        }
-    });
+    addToDeckBtn.addEventListener('click', function() { const cardId = gameState.selectedCardId; if (!cardId) return; if (gameState.deck.length < DECK_SIZE && !gameState.deck.includes(cardId)) { gameState.deck.push(cardId); updateUI(); closePopup(); } });
+    removeFromDeckBtn.addEventListener('click', function() { const cardId = gameState.selectedCardId; if (!cardId) return; const idx = gameState.deck.indexOf(cardId); if (idx !== -1) { gameState.deck.splice(idx, 1); updateUI(); closePopup(); } });
 
     function upgradeCard(card) {
         if (!card) return;
-        // Check if enough XP
         if ((card.xp || 0) >= (card.nextLevelXP || 10)) {
             card.level = (card.level || 1) + 1;
             card.xp = (card.xp || 0) - (card.nextLevelXP || 10);
             card.nextLevelXP = Math.floor((card.nextLevelXP || 10) * 1.5);
-
-            // Increase stats
             card.attack = Math.floor((card.attack || card.baseAttack) * 1.15);
             card.defense = Math.floor((card.defense || card.baseDefense) * 1.15);
-
-            // Increase ability value if present
-            if (card.ability && typeof card.ability.value === 'number') {
-                card.ability.value = parseFloat((card.ability.value * 1.15).toFixed(2));
-            }
+            if (card.ability && typeof card.ability.value === 'number') card.ability.value = parseFloat((card.ability.value * 1.15).toFixed(2));
             showPullNotification({ name: `${card.name} leveled up!`, rarity: card.rarity });
             updateUI();
-            //showCardDetails(card); // Refresh popup
         }
     }
 
-    function performBattle() {
-            if (gameState.deck.length < DECK_SIZE) {
-                log(`You need ${DECK_SIZE} cards in your deck to battle!`);
-                return;
-            }
-            
-            runBattleSimulation();
-        }
+    // Battle logic
+    startBattleBtn.addEventListener('click', performBattle);
+    function performBattle() { if (gameState.deck.length < DECK_SIZE) { log(`You need ${DECK_SIZE} cards in your deck to battle!`); return; } runBattleSimulation(); }
 
-        function runBattleSimulation() {
-            battleSimulationLogEl.innerHTML = '';
-            openBattleOverlay();
-
-            const playerDeck = gameState.deck.map(id => {
-                const card = findCardById(id);
-                return { ...card, health: card.attack + card.defense };
-            });
-            const enemyCards = [];
-            for (let i = 0; i < DECK_SIZE; i++) {
-                const enemy = createEnemyCard(gameState.stage);
-                enemy.health = enemy.attack + enemy.defense;
-                enemyCards.push(enemy);
-            }
-            
-            gameState.enemyCards = enemyCards;
-
-            let playerTurn = true;
-            let playerIndex = 0;
-            let enemyIndex = 0;
-
-            const turnInterval = setInterval(() => {
-                displayBattleCards(playerDeck, playerBattleCardsEl);
-                displayBattleCards(enemyCards, enemyBattleCardsEl);
-                
-                if (playerDeck.length === 0 || enemyCards.length === 0) {
-                    clearInterval(turnInterval);
-                    endBattle(playerDeck, enemyCards);
-                    return;
-                }
-
-                if (playerTurn) {
-                    const attacker = playerDeck[playerIndex];
-                    const defender = enemyCards[enemyIndex];
-                    const damage = Math.max(0, attacker.attack - defender.defense);
-                    defender.health -= damage;
-                    battleLogOverlay(`${attacker.name} attacks ${defender.name} for ${damage} damage!`);
-                    if (defender.health <= 0) {
-                        battleLogOverlay(`${defender.name} was defeated!`);
-                        enemyCards.splice(enemyIndex, 1);
-                        if (enemyIndex >= enemyCards.length) {
-                            enemyIndex = 0;
-                        }
-                    } else {
-                        enemyIndex++;
-                        if (enemyIndex >= enemyCards.length) {
-                            enemyIndex = 0;
-                        }
-                    }
-                } else {
-                    const attacker = enemyCards[enemyIndex];
-                    const defender = playerDeck[playerIndex];
-                    const damage = Math.max(0, attacker.attack - defender.defense);
-                    defender.health -= damage;
-                    battleLogOverlay(`${attacker.name} attacks ${defender.name} for ${damage} damage!`);
-                    if (defender.health <= 0) {
-                        battleLogOverlay(`${defender.name} was defeated!`);
-                        playerDeck.splice(playerIndex, 1);
-                        if (playerIndex >= playerDeck.length) {
-                            playerIndex = 0;
-                        }
-                    } else {
-                        playerIndex++;
-                        if (playerIndex >= playerDeck.length) {
-                            playerIndex = 0;
-                        }
-                    }
-                }
-                playerTurn = !playerTurn;
-            }, 500);
-        }
-
-        function endBattle(playerDeck, enemyCards) {
-            const isWin = playerDeck.length > 0;
-            const rewardsBoost = 1 + getAbilityValue("battleRewardsBoost");
-            const goldBoost = getAbilityValue("battleGold");
-            const manaBoost = getAbilityValue("battleMana");
-            const xpBoost = 1 + getAbilityValue("battleXP");
-
-            if (isWin) {
-                const goldReward = Math.round((gameState.stage * 10 + Math.floor(Math.random() * 20)) * rewardsBoost * (1 + goldBoost));
-                const manaReward = Math.round((gameState.stage * 5 + Math.floor(Math.random() * 10)) * rewardsBoost * (1 + manaBoost));
-                gameState.lastRewards = { gold: goldReward, mana: manaReward, xp: Math.round(10 * xpBoost) };
-                
-                battleLogOverlay(`You won the battle!`);
-                collectRewardsBtn.textContent = `Collect Rewards (+${goldReward} Gold, +${manaReward} Mana)`;
-                collectRewardsBtn.style.display = 'block';
-                
+    function runBattleSimulation() {
+        battleSimulationLogEl.innerHTML = '';
+        openBattleOverlay();
+        const playerDeck = gameState.deck.map(id => { const card = findCardById(id); return { ...card, health: card.attack + card.defense }; });
+        const enemyCards = []; for (let i = 0; i < DECK_SIZE; i++) { const enemy = createEnemyCard(gameState.stage); enemy.health = enemy.attack + enemy.defense; enemyCards.push(enemy); }
+        gameState.enemyCards = enemyCards;
+        let playerTurn = true; let playerIndex = 0; let enemyIndex = 0;
+        const turnInterval = setInterval(() => {
+            displayBattleCards(playerDeck, playerBattleCardsEl);
+            displayBattleCards(enemyCards, enemyBattleCardsEl);
+            if (playerDeck.length === 0 || enemyCards.length === 0) { clearInterval(turnInterval); endBattle(playerDeck, enemyCards); return; }
+            if (playerTurn) {
+                const attacker = playerDeck[playerIndex]; const defender = enemyCards[enemyIndex];
+                const damage = Math.max(0, attacker.attack - defender.defense);
+                defender.health -= damage; battleLogOverlay(`${attacker.name} attacks ${defender.name} for ${damage} damage!`);
+                if (defender.health <= 0) { battleLogOverlay(`${defender.name} was defeated!`); enemyCards.splice(enemyIndex, 1); if (enemyIndex >= enemyCards.length) enemyIndex = 0; }
+                else { enemyIndex++; if (enemyIndex >= enemyCards.length) enemyIndex = 0; }
             } else {
-                const consolationGold = Math.round(gameState.stage * 2 * rewardsBoost * (1 + goldBoost));
-                gameState.lastRewards = { gold: consolationGold, mana: 0, xp: Math.round(5 * xpBoost) };
-                battleLogOverlay(`You lost the battle.`);
-                collectRewardsBtn.textContent = `Collect Consolation Gold (+${consolationGold} Gold)`;
-                collectRewardsBtn.style.display = 'block';
+                const attacker = enemyCards[enemyIndex]; const defender = playerDeck[playerIndex];
+                const damage = Math.max(0, attacker.attack - defender.defense);
+                defender.health -= damage; battleLogOverlay(`${attacker.name} attacks ${defender.name} for ${damage} damage!`);
+                if (defender.health <= 0) { battleLogOverlay(`${defender.name} was defeated!`); playerDeck.splice(playerIndex, 1); if (playerIndex >= playerDeck.length) playerIndex = 0; }
+                else { playerIndex++; if (playerIndex >= playerDeck.length) playerIndex = 0; }
             }
+            playerTurn = !playerTurn;
+        }, 500);
+    }
 
-            const xpGain = gameState.lastRewards.xp;
-            playerDeck.forEach(card => addXP(findCardById(card.id), xpGain));
-            gameState.lastBattleTime = Date.now();
-            updateUI();
+    function endBattle(playerDeck, enemyCards) {
+        const isWin = playerDeck.length > 0;
+        const rewardsBoost = 1 + getAbilityValue("battleRewardsBoost");
+        const goldBoost = getAbilityValue("battleGold");
+        const manaBoost = getAbilityValue("battleMana");
+        const xpBoost = 1 + getAbilityValue("battleXP");
+        if (isWin) {
+            const goldReward = Math.round((gameState.stage * 10 + Math.floor(Math.random() * 20)) * rewardsBoost * (1 + goldBoost));
+            const manaReward = Math.round((gameState.stage * 5 + Math.floor(Math.random() * 10)) * rewardsBoost * (1 + manaBoost));
+            gameState.lastRewards = { gold: goldReward, mana: manaReward, xp: Math.round(10 * xpBoost) };
+            battleLogOverlay(`You won the battle!`);
+            collectRewardsBtn.textContent = `Collect Rewards (+${goldReward} Gold, +${manaReward} Mana)`;
+            collectRewardsBtn.style.display = 'block';
+        } else {
+            const consolationGold = Math.round(gameState.stage * 2 * rewardsBoost * (1 + goldBoost));
+            gameState.lastRewards = { gold: consolationGold, mana: 0, xp: Math.round(5 * xpBoost) };
+            battleLogOverlay(`You lost the battle.`);
+            collectRewardsBtn.textContent = `Collect Consolation Gold (+${consolationGold} Gold)`;
+            collectRewardsBtn.style.display = 'block';
         }
+        const xpGain = gameState.lastRewards.xp;
+        playerDeck.forEach(card => addXP(findCardById(card.id), xpGain));
+        gameState.lastBattleTime = Date.now();
+        updateUI();
+    }
 
-        function collectRewards() {
-            if (gameState.lastRewards) {
-                addGold(gameState.lastRewards.gold);
-                addMana(gameState.lastRewards.mana);
-                if (gameState.lastRewards.mana > 0) {
-                    gameState.stage++;
-                    log(`You won! Gained ${gameState.lastRewards.gold} Gold and ${gameState.lastRewards.mana} Mana. You are now at Stage ${gameState.stage}.`);
-                } else {
-                    log(`You lost the battle. Gained ${gameState.lastRewards.gold} Gold.`);
-                }
-                gameState.lastRewards = null;
-                closeBattleOverlay();
-            }
+    function collectRewards() {
+        if (gameState.lastRewards) {
+            addGold(gameState.lastRewards.gold);
+            addMana(gameState.lastRewards.mana);
+            if (gameState.lastRewards.mana > 0) { gameState.stage++; log(`You won! Gained ${gameState.lastRewards.gold} Gold and ${gameState.lastRewards.mana} Mana. You are now at Stage ${gameState.stage}.`); }
+            else { log(`You lost the battle. Gained ${gameState.lastRewards.gold} Gold.`); }
+            gameState.lastRewards = null;
         }
+    }
 
-    // --- EXAMPLE: Show popup when a card is clicked ---
-    // document.querySelectorAll('.card').forEach(cardEl => {
-    //     cardEl.addEventListener('click', function() {
-    //         const cardId = cardEl.dataset.cardId;
-    //         const card = findCardById(cardId);
-    //         showCardDetails(card);
-    //     });
-    // });
+    // --- Events to ensure overlay closure ---
+    battleCloseBtn.addEventListener('click', closeBattleOverlay);
+    collectRewardsBtn.addEventListener('click', () => { collectRewards(); closeBattleOverlay(); });
+    battleOverlay.addEventListener('click', (e) => { if (e.target === battleOverlay) closeBattleOverlay(); });
 
-    // --- INIT ---
+    // Sorting controls
+    sortBtns.forEach(btn => btn.addEventListener('click', () => { gameState.sortType = btn.dataset.sort; updateUI(); }));
+
+    // INIT
+    function updateGoldDisplay() {
+        goldEl.textContent = gameState.gold.toFixed(1);
+        goldGainEl.textContent = gameState.goldPerSecond.toFixed(1);
+        manaEl.textContent = gameState.mana.toFixed(1);
+        manaGainEl.textContent = gameState.manaPerSecond.toFixed(1);
+        stageEl.textContent = gameState.stage;
+    }
     updateGoldDisplay();
+    updateUI();
     </script>
 </body>
 </html>
